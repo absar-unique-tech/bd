@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Product Details</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui}
+body{background:#f5f5f5;padding-bottom:80px}
+.header{background:#ff6b00;color:#fff;padding:15px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
+.back{color:#fff;text-decoration:none;font-size:24px}
+.loading{text-align:center;padding:50px;color:#666}
+.slider{position:relative;height:400px;background:#fff}
+.slider img{width:100%;height:100%;object-fit:contain}
+.dots{position:absolute;bottom:15px;left:50%;transform:translateX(-50%);display:flex;gap:8px}
+.dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.5)}
+.dot.active{background:#ff6b00}
+.info{background:#fff;padding:20px;margin-top:10px}
+.name{font-size:20px;font-weight:700;margin-bottom:10px}
+.price{font-size:24px;font-weight:800;color:#ff6b00;margin-bottom:15px}
+.colors{display:flex;gap:10px;margin-bottom:20px}
+.color{width:40px;height:40px;border-radius:50%;border:2px solid #ddd;cursor:pointer}
+.color.active{border-color:#ff6b00}
+.desc{color:#666;line-height:1.6;margin-bottom:20px}
+.features h3{font-size:16px;margin-bottom:10px}
+.features ul{list-style:none;padding-left:0}
+.features li{padding:5px 0;color:#666}
+.features li:before{content:"✓ ";color:#ff6b00;font-weight:700}
+.buy{position:fixed;bottom:0;left:0;right:0;background:#fff;padding:15px;display:flex;gap:10px;box-shadow:0 -2px 10px rgba(0,0,0,.1)}
+.qty{display:flex;align-items:center;border:1px solid #ddd;border-radius:6px}
+.qty button{width:40px;height:40px;border:0;background:#f8f9fa;font-size:20px;cursor:pointer}
+.qty input{width:50px;height:40px;border:0;text-align:center;font-weight:700}
+.add-cart{flex:1;background:#ff6b00;color:#fff;border:0;border-radius:6px;font-size:16px;font-weight:700;cursor:pointer}
+.error{text-align:center;padding:50px}
+.error h2{color:#ff3b30;margin-bottom:10px}
+</style>
+</head>
+<body>
+<div class="header">
+<a href="index.html" class="back">←</a>
+<h3>Product Details</h3>
+<div></div>
+</div>
+
+<div id="content"><div class="loading">Loading...</div></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCI39dQTYcZ76ROxUY73jYB3OZPfjsyegI",
+  authDomain: "absar-unique-tech.firebaseapp.com",
+  projectId: "absar-unique-tech",
+  storageBucket: "absar-unique-tech.firebasestorage.app",
+  messagingSenderId: "576285730220",
+  appId: "1:576285730220:web:1d3cdf9cf3ddc4e00b4609"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+let currentImg = 0;
+let qty = 1;
+let selectedColor = '';
+let product = null;
+
+async function loadProduct(){
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+
+  if(!id){
+    showError();
+    return;
+  }
+
+  try {
+    const docRef = doc(db, "products", id);
+    const docSnap = await getDoc(docRef);
+
+    if(!docSnap.exists()){
+      showError();
+      return;
+    }
+
+    product = {id: docSnap.id,...docSnap.data()};
+    selectedColor = product.colors[0] || '';
+    renderProduct();
+  } catch(e){
+    console.error(e);
+    showError();
+  }
+}
+
+function showError(){
+  document.getElementById('content').innerHTML = `
+    <div class="error">
+      <h2>No Product Available</h2>
+      <p>এই প্রোডাক্টটি পাওয়া যায়নি</p>
+      <a href="index.html" style="color:#ff6b00;display:inline-block;margin-top:15px">Go Back Home</a>
+    </div>
+  `;
+}
+
+function renderProduct(){
+  const c = document.getElementById('content');
+  c.innerHTML = `
+    <div class="slider">
+      <img src="${product.images[0]}" id="mainImg">
+      ${product.images.length>1?`<div class="dots">${product.images.map((_,i)=>`<div class="dot ${i===0?'active':''}" onclick="changeImg(${i})"></div>`).join('')}</div>`:''}
+    </div>
+    <div class="info">
+      <div class="name">${product.name}</div>
+      <div class="price">৳${product.price}</div>
+      ${product.colors.length>0?`<div class="colors">${product.colors.map(c=>`<div class="color ${c===selectedColor?'active':''}" style="background:${c.toLowerCase()}" onclick="selectColor('${c}')"></div>`).join('')}</div>`:''}
+      <div class="desc">${product.description||'No description'}</div>
+      ${product.features.length>0?`<div class="features"><h3>Features:</h3><ul>${product.features.map(f=>`<li>${f}</li>`).join('')}</ul></div>`:''}
+    </div>
+    <div class="buy">
+      <div class="qty">
+        <button onclick="changeQty(-1)">-</button>
+        <input type="text" value="1" id="qty" readonly>
+        <button onclick="changeQty(1)">+</button>
+      </div>
+      <button class="add-cart" onclick="addToCart()">Add to Cart</button>
+    </div>
+  `;
+}
+
+window.changeImg = function(i){
+  currentImg = i;
+  document.getElementById('mainImg').src = product.images[i];
+  document.querySelectorAll('.dot').forEach((d,j)=>d.classList.toggle('active',i===j));
+}
+
+window.selectColor = function(c){
+  selectedColor = c;
+  document.querySelectorAll('.color').forEach(el=>el.classList.toggle('active',el.style.background===c.toLowerCase()));
+}
+
+window.changeQty = function(d){
+  qty = Math.max(1, qty + d);
+  document.getElementById('qty').value = qty;
+}
+
+window.addToCart = function(){
+  let cart = JSON.parse(localStorage.getItem('cart')||'[]');
+  const item = {
+    id: product.id,
+    name: product.name,
+    price: product.price,
+    image: product.images[0],
+    color: selectedColor,
+    qty: qty
+  };
+  const exist = cart.find(i=>i.id===item.id&&i.color===item.color);
+  if(exist) exist.qty += qty;
+  else cart.push(item);
+  localStorage.setItem('cart', JSON.stringify(cart));
+  alert('Added to cart!');
+  window.location.href = 'cart.html';
+}
+
+loadProduct();
+</script>
+</body>
+</html>
