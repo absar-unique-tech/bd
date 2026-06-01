@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Login - ABSAR UNIQUE TECH</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system,sans-serif}
+body{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.box{background:#fff;padding:35px;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.2);width:100%;max-width:420px}
+.logo{text-align:center;margin-bottom:25px}
+.logo h2{color:#ff6b00;font-size:28px;font-weight:800}
+.logo p{color:#666;font-size:13px;margin-top:5px}
+input{width:100%;padding:14px;margin:10px 0;border:2px solid #e5e5e5;border-radius:10px;font-size:15px;transition:all.3s}
+input:focus{outline:none;border-color:#ff6b00}
+button{width:100%;padding:14px;background:#ff6b00;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:700;margin-top:12px;cursor:pointer;transition:all.3s}
+button:hover{background:#e55f00}
+button:disabled{background:#ccc;cursor:not-allowed}
+.tabs{display:flex;gap:10px;margin-bottom:25px;background:#f5f5f5;padding:5px;border-radius:10px}
+.tab{flex:1;padding:12px;text-align:center;border-radius:8px;cursor:pointer;font-weight:600;transition:all.3s}
+.tab.active{background:#fff;color:#ff6b00;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.form{display:none}
+.form.active{display:block}
+.error{color:#ff3b30;font-size:13px;margin-top:8px;text-align:center;min-height:18px}
+.back{text-align:center;margin-top:20px}
+.back a{color:#ff6b00;text-decoration:none;font-size:14px;font-weight:600}
+.social-login{text-align:center;margin-top:25px;padding-top:25px;border-top:1px solid #e5e5e5}
+.social-text{color:#999;font-size:14px;margin-bottom:15px}
+.google-btn{width:100%;padding:12px;background:#fff;color:#1a1a1a;border:2px solid #e5e5e5;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all.3s}
+.google-btn:hover{background:#f5f5f5;border-color:#ff6b00;transform:translateY(-1px)}
+.google-btn img{width:20px;height:20px}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="logo">
+    <h2>ABSAR UNIQUE TECH</h2>
+    <p>Welcome back! Please login to continue</p>
+  </div>
+  
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('login',this)">Login</div>
+    <div class="tab" onclick="showTab('register',this)">Register</div>
+  </div>
+  
+  <div id="login" class="form active">
+    <input type="email" id="loginEmail" placeholder="Email Address" autocomplete="email">
+    <input type="password" id="loginPass" placeholder="Password" autocomplete="current-password">
+    <div class="error" id="loginError"></div>
+    <button onclick="handleLogin()" id="loginBtn">Login</button>
+    
+    <div class="social-login">
+      <div class="social-text">Or continue with</div>
+      <button class="google-btn" onclick="googleLogin()">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+        Continue with Google
+      </button>
+    </div>
+  </div>
+  
+  <div id="register" class="form">
+    <input type="text" id="regName" placeholder="Full Name" autocomplete="name">
+    <input type="tel" id="regPhone" placeholder="Phone Number" autocomplete="tel">
+    <input type="email" id="regEmail" placeholder="Email Address" autocomplete="email">
+    <input type="password" id="regPass" placeholder="Password (min 6 characters)" autocomplete="new-password">
+    <div class="error" id="regError"></div>
+    <button onclick="handleRegister()" id="regBtn">Create Account</button>
+    
+    <div class="social-login">
+      <div class="social-text">Or sign up with</div>
+      <button class="google-btn" onclick="googleLogin()">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+        Sign up with Google
+      </button>
+    </div>
+  </div>
+  
+  <div class="back">
+    <a href="index.html">← Back to Home</a>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCI39dQTYcZ76ROxUY73jYB3OZPfjsyegI",
+  authDomain: "absar-unique-tech.firebaseapp.com",
+  projectId: "absar-unique-tech",
+  storageBucket: "absar-unique-tech.firebasestorage.app",
+  messagingSenderId: "576285730220",
+  appId: "1:576285730220:web:1d3cdf9cf3ddc4e00b4609",
+  measurementId: "G-T77Z74DM83"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
+
+window.showTab = function(tab,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.form').forEach(f=>f.classList.remove('active'));
+  document.querySelectorAll('.error').forEach(e=>e.textContent='');
+  el.classList.add('active');
+  document.getElementById(tab).classList.add('active');
+}
+
+window.googleLogin = async function(){
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    alert('✅ Google Login Success! Welcome ' + result.user.displayName);
+    window.location.href = 'index.html';
+  } catch(e){
+    console.error(e);
+    alert('❌ Error: ' + e.message);
+  }
+}
+
+window.handleLogin = async function(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const errorEl = document.getElementById('loginError');
+  const btn = document.getElementById('loginBtn');
+  
+  if(!email ||!pass){
+    errorEl.textContent = 'Please fill all fields';
+    return;
+  }
+  
+  btn.disabled = true;
+  btn.textContent = 'Logging in...';
+  errorEl.textContent = '';
+  
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+    alert('✅ Login Success!');
+    window.location.href = 'index.html';
+  } catch(e){
+    errorEl.textContent = e.message.replace('Firebase: ','').replace('Error ','');
+    btn.disabled = false;
+    btn.textContent = 'Login';
+  }
+}
+
+window.handleRegister = async function(){
+  const name = document.getElementById('regName').value.trim();
+  const phone = document.getElementById('regPhone').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const pass = document.getElementById('regPass').value;
+  const errorEl = document.getElementById('regError');
+  const btn = document.getElementById('regBtn');
+  
+  if(!name ||!phone ||!email ||!pass){
+    errorEl.textContent = 'Please fill all fields';
+    return;
+  }
+  
+  if(pass.length < 6){
+    errorEl.textContent = 'Password must be at least 6 characters';
+    return;
+  }
+  
+  btn.disabled = true;
+  btn.textContent = 'Creating account...';
+  errorEl.textContent = '';
+  
+  try {
+    await createUserWithEmailAndPassword(auth, email, pass);
+    alert('✅ Registration Success! Please login now.');
+    showTab('login', document.querySelectorAll('.tab')[0]);
+    document.getElementById('loginEmail').value = email;
+  } catch(e){
+    errorEl.textContent = e.message.replace('Firebase: ','').replace('Error ','');
+  }
+  
+  btn.disabled = false;
+  btn.textContent = 'Create Account';
+}
+</script>
+</body>
+</html>
