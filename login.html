@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Login - ABSAR UNIQUE TECH</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui}
+body{background:#f5f5f5}
+.header{background:#ff6b00;color:#fff;padding:15px;display:flex;align-items:center;gap:15px}
+.back{color:#fff;text-decoration:none;font-size:24px}
+.container{max-width:400px;margin:30px auto;padding:20px}
+.tabs{display:flex;gap:10px;margin-bottom:20px}
+.tab{flex:1;padding:12px;border:1px solid #ddd;background:#fff;border-radius:8px;text-align:center;cursor:pointer;font-weight:600}
+.tab.active{background:#ff6b00;color:#fff;border-color:#ff6b00}
+.form{background:#fff;padding:25px;border-radius:12px}
+.form-group{margin-bottom:15px}
+.form-group label{display:block;margin-bottom:5px;font-weight:600;font-size:14px}
+.form-group input{width:100%;padding:12px;border:1px solid #ddd;border-radius:6px;font-size:14px}
+.btn{width:100%;background:#ff6b00;color:#fff;border:0;padding:14px;border-radius:8px;font-size:16px;font-weight:700;cursor:pointer}
+.btn:disabled{background:#ccc}
+.error{color:#ff3b30;font-size:13px;margin-top:5px}
+</style>
+</head>
+<body>
+<div class="header">
+<a href="index.html" class="back">←</a>
+<h3>Account</h3>
+</div>
+
+<div class="container">
+<div class="tabs">
+<div class="tab active" onclick="showTab('login',this)">Login</div>
+<div class="tab" onclick="showTab('signup',this)">Sign Up</div>
+</div>
+
+<div id="login" class="form">
+<div class="form-group">
+<label>Email</label>
+<input type="email" id="lEmail" placeholder="your@email.com">
+</div>
+<div class="form-group">
+<label>Password</label>
+<input type="password" id="lPass" placeholder="Enter password">
+</div>
+<div class="error" id="lError"></div>
+<button class="btn" onclick="loginUser()">Login</button>
+</div>
+
+<div id="signup" class="form" style="display:none">
+<div class="form-group">
+<label>Full Name</label>
+<input type="text" id="sName" placeholder="Your name">
+</div>
+<div class="form-group">
+<label>Email</label>
+<input type="email" id="sEmail" placeholder="your@email.com">
+</div>
+<div class="form-group">
+<label>Phone</label>
+<input type="tel" id="sPhone" placeholder="01XXXXXXXXX">
+</div>
+<div class="form-group">
+<label>Password</label>
+<input type="password" id="sPass" placeholder="Min 6 characters">
+</div>
+<div class="error" id="sError"></div>
+<button class="btn" onclick="signupUser()">Sign Up</button>
+</div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { getFirestore, doc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCI39dQTYcZ76ROxUY73jYB3OZPfjsyegI",
+  authDomain: "absar-unique-tech.firebaseapp.com",
+  projectId: "absar-unique-tech",
+  storageBucket: "absar-unique-tech.firebasestorage.app",
+  messagingSenderId: "576285730220",
+  appId: "1:576285730220:web:1d3cdf9cf3ddc4e00b4609"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+window.showTab = function(tab,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('login').style.display = tab==='login'?'block':'none';
+  document.getElementById('signup').style.display = tab==='signup'?'block':'none';
+}
+
+window.loginUser = async function(){
+  const email = document.getElementById('lEmail').value.trim();
+  const pass = document.getElementById('lPass').value;
+  const error = document.getElementById('lError');
+  error.textContent = '';
+
+  if(!email||!pass){
+    error.textContent = 'Fill all fields';
+    return;
+  }
+
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+    alert('Login successful!');
+    window.location.href = 'index.html';
+  } catch(e){
+    error.textContent = e.message;
+  }
+}
+
+window.signupUser = async function(){
+  const name = document.getElementById('sName').value.trim();
+  const email = document.getElementById('sEmail').value.trim();
+  const phone = document.getElementById('sPhone').value.trim();
+  const pass = document.getElementById('sPass').value;
+  const error = document.getElementById('sError');
+  error.textContent = '';
+
+  if(!name||!email||!phone||!pass){
+    error.textContent = 'Fill all fields';
+    return;
+  }
+  if(pass.length<6){
+    error.textContent = 'Password must be 6+ characters';
+    return;
+  }
+
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+    await setDoc(doc(db, "users", cred.user.uid), {
+      name, email, phone, createdAt: new Date().toISOString()
+    });
+    alert('Account created!');
+    window.location.href = 'index.html';
+  } catch(e){
+    error.textContent = e.message;
+  }
+}
+</script>
+</body>
+</html>
