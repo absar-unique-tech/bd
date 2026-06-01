@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Product - Absar Unique Tech</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f7;color:#1d1d1f}
+header{background:rgba(255,255,255,.8);backdrop-filter:blur(20px);position:sticky;top:0;z-index:100;border-bottom:1px solid #d2d2d7}
+.nav{max-width:1200px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:20px}
+.back{width:40px;height:40px;border-radius:50%;background:#f5f5f7;display:flex;align-items:center;justify-content:center;text-decoration:none;color:#1d1d1f;font-size:20px}
+.cart{margin-left:auto;position:relative}
+.cart-btn{width:40px;height:40px;border-radius:50%;background:#f5f5f7;display:flex;align-items:center;justify-content:center;text-decoration:none;color:#1d1d1f;font-size:18px}
+.cart-count{position:absolute;top:-4px;right:-4px;background:#ff3b30;color:#fff;width:20px;height:20px;border-radius:50%;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:600}
+.wrap{max-width:1200px;margin:0 auto;padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:40px}
+.gallery{background:#fff;border-radius:18px;padding:20px}
+.main-img{width:100%;aspect-ratio:1;border-radius:12px;overflow:hidden;margin-bottom:12px}
+.main-img img{width:100%;height:100%;object-fit:cover}
+.thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.thumbs img{width:100%;aspect-ratio:1;border-radius:8px;object-fit:cover;cursor:pointer;border:2px solid transparent}
+.thumbs img.active{border-color:#007aff}
+.info{background:#fff;border-radius:18px;padding:30px}
+.name{font-size:32px;font-weight:700;margin-bottom:8px}
+.brand{color:#007aff;font-size:14px;font-weight:600;margin-bottom:16px}
+.price{font-size:36px;font-weight:700;color:#007aff;margin-bottom:20px}
+.stock{color:#34c759;font-weight:600;margin-bottom:20px}
+.stock.out{color:#ff3b30}
+.section{margin:20px 0}
+.section-title{font-size:14px;font-weight:600;color:#86868b;margin-bottom:10px}
+.colors{display:flex;gap:10px;flex-wrap:wrap}
+.color{width:44px;height:44px;border-radius:50%;border:3px solid #d2d2d7;cursor:pointer}
+.color.active{border-color:#007aff}
+.qty{display:flex;align-items:center;gap:16px;background:#f5f5f7;width:fit-content;border-radius:10px;padding:4px}
+.qty button{width:36px;height:36px;border:none;background:#fff;border-radius:8px;font-size:20px;cursor:pointer}
+.qty span{font-weight:600;min-width:30px;text-align:center}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:24px 0}
+.btn{padding:16px;border:none;border-radius:12px;font-weight:600;font-size:16px;cursor:pointer}
+.btn-add{background:#f5f5f7;color:#1d1d1f}
+.btn-buy{background:#007aff;color:#fff}
+.btn:disabled{background:#d2d2d7;color:#86868b;cursor:not-allowed}
+.desc{line-height:1.6;color:#424245}
+.features{margin-top:16px}
+.features li{margin:8px 0;color:#424245}
+.loading{text-align:center;padding:60px;color:#86868b}
+@media(max-width:768px){.wrap{grid-template-columns:1fr;gap:20px}.name{font-size:24px}.price{font-size:28px}}
+</style>
+</head>
+<body>
+<header>
+<div class="nav">
+<a href="index.html" class="back">←</a>
+<div class="cart">
+<a href="cart.html" class="cart-btn">🛒</a>
+<span class="cart-count" id="cartCount">0</span>
+</div>
+</div>
+</header>
+<div class="wrap" id="content">
+<div class="loading">Loading...</div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js';
+import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCI39dQTYcZ76ROxUY73jYB3OZPfjsyegI",
+  authDomain: "absar-unique-tech.firebaseapp.com",
+  projectId: "absar-unique-tech",
+  storageBucket: "absar-unique-tech.firebasestorage.app",
+  messagingSenderId: "576285730220",
+  appId: "1:576285730220:web:1d3cdf9cf3ddc4e00b4609",
+  measurementId: "G-T77Z74DM83"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+let product = null;
+let selectedColor = '';
+let qty = 1;
+
+const params = new URLSearchParams(location.search);
+const productId = params.get('id');
+
+async function loadProduct(){
+  try {
+    const docSnap = await getDoc(doc(db, "products", productId));
+    if(!docSnap.exists()){
+      document.getElementById('content').innerHTML = '<div class="loading">Product not found</div>';
+      return;
+    }
+    product = {id: docSnap.id,...docSnap.data()};
+    selectedColor = product.colors[0] || '';
+    renderProduct();
+    updateCartCount();
+  } catch(e){
+    document.getElementById('content').innerHTML = '<div class="loading">Error loading product</div>';
+  }
+}
+
+function renderProduct(){
+  document.getElementById('content').innerHTML = `
+    <div class="gallery">
+      <div class="main-img"><img src="${product.images[0]}" id="mainImg"></div>
+      <div class="thumbs">
+        ${product.images.map((img,i)=>`<img src="${img}" class="${i===0?'active':''}" onclick="changeImg('${img}',this)">`).join('')}
+      </div>
+    </div>
+    <div class="info">
+      <h1 class="name">${product.name}</h1>
+      ${product.brand?`<div class="brand">${product.brand}</div>`:''}
+      <div class="price">৳${product.price}</div>
+      <div class="stock ${product.stock===0?'out':''}">${product.stock>0?`${product.stock} in stock`:'Out of stock'}</div>
+      
+      ${product.colors.length>0?`
+      <div class="section">
+        <div class="section-title">Color</div>
+        <div class="colors">
+          ${product.colors.map(c=>`<div class="color ${c===selectedColor?'active':''}" style="background:${c}" onclick="selectColor('${c}',this)"></div>`).join('')}
+        </div>
+      </div>`:''}
+      
+      <div class="section">
+        <div class="section-title">Quantity</div>
+        <div class="qty">
+          <button onclick="changeQty(-1)">−</button>
+          <span id="qty">1</span>
+          <button onclick="changeQty(1)">+</button>
+        </div>
+      </div>
+      
+      <div class="btns">
+        <button class="btn btn-add" onclick="addToCart()" ${product.stock===0?'disabled':''}>Add to Cart</button>
+        <button class="btn btn-buy" onclick="buyNow()" ${product.stock===0?'disabled':''}>Buy Now</button>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Description</div>
+        <div class="desc">${product.description}</div>
+        ${product.features.length>0?`
+        <ul class="features">
+          ${product.features.map(f=>`<li>✓ ${f}</li>`).join('')}
+        </ul>`:''}
+      </div>
+    </div>
+  `;
+}
+
+window.changeImg = function(src,el){
+  document.getElementById('mainImg').src = src;
+  document.querySelectorAll('.thumbs img').forEach(i=>i.classList.remove('active'));
+  el.classList.add('active');
+}
+
+window.selectColor = function(color,el){
+  selectedColor = color;
+  document.querySelectorAll('.color').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+}
+
+window.changeQty = function(delta){
+  qty = Math.max(1, Math.min(product.stock, qty + delta));
+  document.getElementById('qty').textContent = qty;
+}
+
+window.addToCart = function(){
+  let cart = JSON.parse(localStorage.getItem('cart')||'[]');
+  const existing = cart.find(i=>i.id===product.id && i.color===selectedColor);
+  if(existing){
+    existing.qty += qty;
+  } else {
+    cart.push({id:product.id,name:product.name,price:product.price,image:product.images[0],color:selectedColor,qty:qty});
+  }
+  localStorage.setItem('cart',JSON.stringify(cart));
+  updateCartCount();
+  alert('Added to cart!');
+}
+
+window.buyNow = function(){
+  addToCart();
+  location.href = 'cart.html';
+}
+
+function updateCartCount(){
+  const cart = JSON.parse(localStorage.getItem('cart')||'[]');
+  document.getElementById('cartCount').textContent = cart.reduce((sum,i)=>sum+i.qty,0);
+}
+
+loadProduct();
+</script>
+</body>
+</html>
