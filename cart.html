@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cart - Absar Unique Tech</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f7;color:#1d1d1f}
+header{background:rgba(255,255,255,.8);backdrop-filter:blur(20px);position:sticky;top:0;z-index:100;border-bottom:1px solid #d2d2d7}
+.nav{max-width:1200px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:20px}
+.back{width:40px;height:40px;border-radius:50%;background:#f5f5f7;display:flex;align-items:center;justify-content:center;text-decoration:none;color:#1d1d1f;font-size:20px}
+.title{font-size:20px;font-weight:600}
+.wrap{max-width:1200px;margin:0 auto;padding:20px;display:grid;grid-template-columns:1fr 400px;gap:20px}
+.items{background:#fff;border-radius:18px;padding:20px}
+.item{display:grid;grid-template-columns:80px 1fr auto;gap:16px;padding:16px 0;border-bottom:1px solid #f5f5f7}
+.item:last-child{border-bottom:none}
+.item img{width:80px;height:80px;border-radius:12px;object-fit:cover}
+.item-info h3{font-size:16px;margin-bottom:4px}
+.item-info.color{font-size:13px;color:#86868b;margin-bottom:8px}
+.item-info.price{font-weight:600;color:#007aff}
+.item-actions{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.qty{display:flex;align-items:center;gap:8px;background:#f5f5f7;border-radius:8px;padding:4px}
+.qty button{width:28px;height:28px;border:none;background:#fff;border-radius:6px;cursor:pointer}
+.remove{color:#ff3b30;font-size:13px;cursor:pointer;background:none;border:none}
+.summary{background:#fff;border-radius:18px;padding:24px;height:fit-content;position:sticky;top:80px}
+.summary h2{font-size:20px;margin-bottom:20px}
+.row{display:flex;justify-content:space-between;margin:12px 0;color:#424245}
+.row.total{font-size:20px;font-weight:700;color:#1d1d1f;padding-top:12px;border-top:1px solid #d2d2d7}
+.form{margin-top:24px}
+.form input,.form textarea{width:100%;padding:12px;border:1px solid #d2d2d7;border-radius:10px;margin-bottom:12px;font-family:inherit}
+.delivery-box{border:2px solid #f5f5f7;border-radius:12px;padding:16px;margin:16px 0}
+.delivery-box label.title{font-weight:600;font-size:15px;margin-bottom:12px;display:block}
+.radio-row{display:flex;align-items:center;margin-bottom:10px;cursor:pointer;font-size:15px}
+.radio-row input{width:auto;margin-right:10px;cursor:pointer}
+.radio-row:last-child{margin-bottom:0}
+.btn{width:100%;padding:16px;background:#007aff;color:#fff;border:none;border-radius:12px;font-weight:600;font-size:16px;cursor:pointer;margin-top:12px}
+.btn:disabled{background:#d2d2d7;cursor:not-allowed}
+.empty{text-align:center;padding:60px;color:#86868b}
+.empty a{color:#007aff;text-decoration:none}
+@media(max-width:768px){.wrap{grid-template-columns:1fr}.summary{position:static}}
+</style>
+</head>
+<body>
+<header>
+<div class="nav">
+<a href="index.html" class="back">←</a>
+<div class="title">Shopping Cart</div>
+</div>
+</header>
+<div class="wrap">
+<div class="items" id="items"></div>
+<div class="summary" id="summary"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js';
+import { getFirestore, collection, addDoc } from 'https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCI39dQTYcZ76ROxUY73jYB3OZPfjsyegI",
+  authDomain: "absar-unique-tech.firebaseapp.com",
+  projectId: "absar-unique-tech",
+  storageBucket: "absar-unique-tech.firebasestorage.app",
+  messagingSenderId: "576285730220",
+  appId: "1:576285730220:web:1d3cdf9cf3ddc4e00b4609",
+  measurementId: "G-T77Z74DM83"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+let cart = JSON.parse(localStorage.getItem('cart')||'[]');
+let selectedShipping = 0;
+
+function renderCart(){
+  const itemsEl = document.getElementById('items');
+  const summaryEl = document.getElementById('summary');
+  
+  if(cart.length===0){
+    itemsEl.innerHTML = '<div class="empty">Cart is empty<br><a href="index.html">Continue Shopping</a></div>';
+    summaryEl.innerHTML = '';
+    return;
+  }
+  
+  itemsEl.innerHTML = cart.map((item,i)=>`
+    <div class="item">
+      <img src="${item.image}">
+      <div class="item-info">
+        <h3>${item.name}</h3>
+        ${item.color?`<div class="color">Color: ${item.color}</div>`:''}
+        <div class="price">৳${item.price}</div>
+      </div>
+      <div class="item-actions">
+        <div class="qty">
+          <button onclick="changeQty(${i},-1)">−</button>
+          <span>${item.qty}</span>
+          <button onclick="changeQty(${i},1)">+</button>
+        </div>
+        <button class="remove" onclick="removeItem(${i})">Remove</button>
+      </div>
+    </div>
+  `).join('');
+  
+  updateSummary();
+}
+
+function updateSummary(){
+  const summaryEl = document.getElementById('summary');
+  const subtotal = cart.reduce((sum,i)=>sum+i.price*i.qty,0);
+  const total = subtotal + selectedShipping;
+  
+  summaryEl.innerHTML = `
+    <h2>Order Summary</h2>
+    <div class="row"><span>Subtotal</span><span>৳${subtotal}</span></div>
+    <div class="row"><span>Shipping</span><span>৳${selectedShipping}</span></div>
+    <div class="row total"><span>Total</span><span>৳${total}</span></div>
+    
+    <form class="form" onsubmit="placeOrder(event)">
+      <input type="text" id="name" placeholder="Full Name" required>
+      <input type="tel" id="phone" placeholder="Phone Number" required>
+      <textarea id="address" placeholder="Full Address" rows="3" required></textarea>
+      
+      <div class="delivery-box">
+        <label class="title">Delivery Area *</label>
+        <label class="radio-row">
+          <input type="radio" name="shipping" value="80" onchange="selectShipping(80)" required>
+          ঢাকার ভিতরে - ৳80
+        </label>
+        <label class="radio-row">
+          <input type="radio" name="shipping" value="150" onchange="selectShipping(150)" required>
+          ঢাকার বাইরে - ৳150
+        </label>
+      </div>
+      
+      <button type="submit" class="btn">Place Order</button>
+    </form>
+  `;
+}
+
+window.selectShipping = function(charge){
+  selectedShipping = charge;
+  updateSummary();
+}
+
+window.changeQty = function(index,delta){
+  cart[index].qty = Math.max(1, cart[index].qty + delta);
+  localStorage.setItem('cart',JSON.stringify(cart));
+  renderCart();
+}
+
+window.removeItem = function(index){
+  cart.splice(index,1);
+  localStorage.setItem('cart',JSON.stringify(cart));
+  renderCart();
+}
+
+window.placeOrder = async function(e){
+  e.preventDefault();
+  
+  if(selectedShipping === 0){
+    alert('Please select delivery area!');
+    return;
+  }
+  
+  const btn = e.target.querySelector('button');
+  btn.disabled = true;
+  btn.textContent = 'Placing Order...';
+  
+  const subtotal = cart.reduce((sum,i)=>sum+i.price*i.qty,0);
+  const order = {
+    customer: {
+      name: document.getElementById('name').value,
+      phone: document.getElementById('phone').value,
+      address: document.getElementById('address').value
+    },
+    items: cart,
+    subtotal: subtotal,
+    shipping: selectedShipping,
+    deliveryArea: selectedShipping === 80? 'Inside Dhaka' : 'Outside Dhaka',
+    total: subtotal + selectedShipping,
+    status: 'pending',
+    date: new Date().toISOString()
+  };
+  
+  try {
+    await addDoc(collection(db, "orders"), order);
+    localStorage.removeItem('cart');
+    alert('Order placed successfully! আমরা শীঘ্রই যোগাযোগ করব।');
+    location.href = 'index.html';
+  } catch(error){
+    alert('Error placing order. Please try again.');
+    btn.disabled = false;
+    btn.textContent = 'Place Order';
+  }
+}
+
+renderCart();
+</script>
+</body>
+</html>
