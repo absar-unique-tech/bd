@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ABSAR UNIQUE TECH - 100% Authentic Mobile Accessories</title>
+<meta name="description" content="Original chargers, cables, power banks & gadgets in Bangladesh">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ff6b00">
+<link rel="apple-touch-icon" href="https://i.imgur.com/KB0N7zZ.png">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system,sans-serif}
+body{background:#f8f9fa;color:#1a1a1a}
+.header{background:linear-gradient(135deg,#ff6b00,#ff8c00);color:#fff;padding:12px 15px;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,.1)}
+.h-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.logo{font-size:20px;font-weight:800;display:flex;align-items:center;gap:8px}
+.logo img{width:32px;height:32px;border-radius:6px}
+.h-icons{display:flex;gap:15px}
+.icon{width:24px;height:24px;cursor:pointer;position:relative}
+.icon svg{width:100%;height:100%;fill:#fff}
+.cart-count{position:absolute;top:-6px;right:-6px;background:#fff;color:#ff6b00;border-radius:50%;width:18px;height:18px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.search{background:#fff;border-radius:25px;padding:8px 15px;display:flex;align-items:center;gap:8px}
+.search input{border:0;outline:0;width:100%;font-size:14px}
+.tabs{display:flex;gap:8px;padding:10px 15px;overflow-x:auto;background:#fff;border-bottom:1px solid #eee}
+.tab{padding:8px 16px;border-radius:20px;background:#f1f3f5;font-size:13px;white-space:nowrap;cursor:pointer;border:1px solid transparent}
+.tab.active{background:#fff3e6;color:#ff6b00;border-color:#ff6b00;font-weight:600}
+.banner{margin:15px;border-radius:12px;overflow:hidden;position:relative;height:180px}
+.banner img{width:100%;height:100%;object-fit:cover}
+.banner-text{position:absolute;bottom:20px;left:20px;color:#fff}
+.banner-text h2{font-size:24px;margin-bottom:5px;text-shadow:0 2px 4px rgba(0,0,0,.3)}
+.banner-text p{font-size:14px;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+.section{padding:0 15px 20px}
+.section-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.section-h h3{font-size:18px;font-weight:700}
+.see-all{color:#ff6b00;font-size:13px;text-decoration:none}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.p-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06);cursor:pointer;transition:transform .2s;text-decoration:none;color:inherit}
+.p-card:active{transform:scale(.98)}
+.p-img{position:relative;padding-top:100%;background:#f8f9fa}
+.p-img img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover}
+.soldout{position:absolute;top:8px;left:8px;background:#ff3b30;color:#fff;padding:4px 8px;border-radius:4px;font-size:10px;font-weight:700}
+.brand{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.7);color:#fff;padding:4px 8px;border-radius:4px;font-size:10px}
+.p-info{padding:10px}
+.p-name{font-size:13px;font-weight:600;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.3}
+.p-price{font-size:16px;font-weight:800;color:#ff6b00}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #eee;display:flex;justify-content:space-around;padding:8px 0;z-index:100}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;color:#999;font-size:10px;text-decoration:none}
+.nav-item.active{color:#ff6b00}
+.nav-item svg{width:24px;height:24px;fill:currentColor}
+.menu{position:fixed;top:0;left:-280px;width:280px;height:100vh;background:#fff;z-index:200;transition:left .3s;box-shadow:2px 0 10px rgba(0,0,0,.1)}
+.menu.active{left:0}
+.menu-h{background:linear-gradient(135deg,#ff6b00,#ff8c00);color:#fff;padding:20px}
+.menu-h h3{font-size:18px;margin-bottom:5px}
+.menu-list{padding:15px}
+.menu-item{padding:12px 0;border-bottom:1px solid #f1f3f5;display:flex;align-items:center;gap:12px;cursor:pointer}
+.menu-item svg{width:20px;height:20px;fill:#666}
+.overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:199;display:none}
+.overlay.active{display:block}
+.tab-content{display:none}
+.tab-content.active{display:block}
+</style>
+</head>
+<body>
+<div class="header">
+<div class="h-top">
+<div class="logo" onclick="toggleMenu()">
+<svg width="24" height="24" fill="#fff" viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+<img src="https://i.imgur.com/KB0N7zZ.png" alt="Logo"> ABSAR UNIQUE TECH
+</div>
+<div class="h-icons">
+<a href="login.html" class="icon"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></a>
+<a href="cart.html" class="icon"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg><span class="cart-count" id="cartCount">0</span></a>
+</div>
+</div>
+<div class="search">
+<svg width="18" height="18" fill="#999" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+<input type="text" placeholder="Search products..." oninput="search(this.value)">
+</div>
+</div>
+
+<div class="tabs">
+<div class="tab active" onclick="showTab('home',this)">Home</div>
+<div class="tab" onclick="showTab('new',this)">New Arrivals</div>
+<div class="tab" onclick="showTab('deals',this)">Hot Deals</div>
+<div class="tab" onclick="showTab('about',this)">About</div>
+</div>
+
+<div class="banner">
+<img src="https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=800" alt="Banner">
+<div class="banner-text">
+<h2>100% Authentic</h2>
+<p>Original Mobile Accessories</p>
+</div>
+</div>
+
+<div id="homeTab" class="tab-content active">
+<div class="section">
+<div class="section-h"><h3>Featured Products</h3><a href="#" class="see-all">See All</a></div>
+<div class="grid" id="grid"></div>
+</div>
+</div>
+
+<div id="newTab" class="tab-content">
+<div class="section">
+<div class="section-h"><h3>New Arrivals</h3></div>
+<div class="grid" id="newGrid"></div>
+</div>
+</div>
+
+<div id="dealsTab" class="tab-content">
+<div class="section">
+<div class="section-h"><h3>Hot Deals</h3></div>
+<div class="grid" id="dealsGrid"></div>
+</div>
+</div>
+
+<div id="aboutTab" class="tab-content">
+<div class="section" style="padding:20px">
+<h3 style="margin-bottom:15px">About ABSAR UNIQUE TECH</h3>
+<p style="line-height:1.6;color:#666;margin-bottom:15px">We provide 100% original mobile accessories with 6 months replacement guarantee. Trusted by 5000+ customers across Bangladesh.</p>
+<div style="background:#fff3e6;padding:15px;border-radius:12px;margin-bottom:15px">
+<h4 style="color:#ff6b00;margin-bottom:10px">Why Choose Us?</h4>
+<p style="font-size:14px;line-height:1.6">✓ 100% Original Products<br>✓ 6 Months Replacement<br>✓ Fast Delivery<br>✓ Best Price Guarantee</p>
+</div>
+<div style="background:#fff;padding:15px;border-radius:12px">
+<h4 style="margin-bottom:10px">Contact</h4>
+<p style="font-size:14px;color:#666">📱 WhatsApp: +880 1XXX-XXXXXX<br>📍 Dhaka, Bangladesh<br>⏰ 10 AM - 10 PM</p>
+</div>
+</div>
+</div>
+
+<div class="bottom-nav">
+<a href="#" class="nav-item active"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Home</span></a>
+<a href="#" class="nav-item"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg><span>Cart</span></a>
+<a href="#" class="nav-item"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg><span>Account</span></a>
+</div>
+
+<div class="menu" id="menu">
+<div class="menu-h"><h3>ABSAR UNIQUE TECH</h3><p style="font-size:13px;opacity:.9">100% Authentic Accessories</p></div>
+<div class="menu-list">
+<div class="menu-item" onclick="filter('all')"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg> All Products</div>
+<div class="menu-item" onclick="filter('charger')"><svg viewBox="0 0 24 24"><path d="M16.67 4H19V2h-5v2h2.33L13 7.33V9h2.67L19 5.67V8h2V4h-4.33zM5 16h4v-2H5v-4h6v6H5v4h6v-2H7v-2z"/></svg> Chargers</div>
+<div class="menu-item" onclick="filter('cable')"><svg viewBox="0 0 24 24"><path d="M20 10V8h-4V4h-2v4h-4V4H8v4H4v2h4v4H4v2h4v4h2v-4h4v4h2v-4h4v-2h-4v-4h4z"/></svg> Cables</div>
+<div class="menu-item" onclick="filter('powerbank')"><svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg> Power Banks</div>
+<div class="menu-item" onclick="filter('earphone')"><svg viewBox="0 0 24 24"><path d="M12 1c-4.97 0-9 4.03-9 9v7c0 1.66 1.34 3 3 3h3v-8H5v-2c0-3.87 3.13-7 7-7s7 3.13 7 7v2h-4v8h3c1.66 0 3-1.34 3-3v-7c0-4.97-4.03-9-9-9z"/></svg> Earphones</div>
+<div class="menu-item" onclick="filter('adapter')"><svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v3z"/></svg> Adapters</div>
+<div class="menu-item" onclick="filter('gadget')"><svg viewBox="0 0 24 24"><path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"/></svg> Gadgets</div>
+</div>
+</div>
+<div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+
+<script type="module" src="script.js"></script>
+</body>
+</html>
