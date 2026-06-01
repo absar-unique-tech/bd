@@ -1,0 +1,9 @@
+{
+  "name": "ABSAR UNIQUE TECH",
+  "short_name": "AUT",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ff6b00",
+  "icons": [{"src": "logo.jpg","sizes": "512x512","type": "image/jpeg"}]
+}
