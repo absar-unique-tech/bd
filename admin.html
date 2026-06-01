@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin Panel - ABSAR UNIQUE TECH</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui}
+body{background:#f5f5f5}
+.login{max-width:400px;margin:100px auto;background:#fff;padding:30px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.1)}
+.login h2{text-align:center;margin-bottom:20px;color:#ff6b00}
+.login input{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;margin-bottom:15px;font-size:14px}
+.login button{width:100%;padding:12px;background:#ff6b00;color:#fff;border:0;border-radius:8px;font-size:16px;font-weight:700;cursor:pointer}
+.login button:active{opacity:.8}
+.panel{display:none}
+.header{background:#ff6b00;color:#fff;padding:15px;display:flex;justify-content:space-between;align-items:center}
+.header h2{font-size:18px}
+.logout{background:#fff;color:#ff6b00;border:0;padding:8px 16px;border-radius:6px;font-weight:700;cursor:pointer}
+.tabs{display:flex;gap:8px;padding:15px;background:#fff;border-bottom:1px solid #eee}
+.tab{padding:8px 16px;border-radius:6px;background:#f1f3f5;font-size:14px;cursor:pointer;border:1px solid transparent}
+.tab.active{background:#fff3e6;color:#ff6b00;border-color:#ff6b00;font-weight:600}
+.content{display:none;padding:20px}
+.content.active{display:block}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:15px;margin-bottom:20px}
+.stat{background:#fff;padding:20px;border-radius:12px;text-align:center}
+.stat h3{font-size:32px;color:#ff6b00;margin-bottom:5px}
+.stat p{color:#666;font-size:14px}
+.form{background:#fff;padding:20px;border-radius:12px}
+.form-group{margin-bottom:15px}
+.form-group label{display:block;margin-bottom:5px;font-weight:600;font-size:14px}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px}
+.form-group textarea{resize:vertical;min-height:80px}
+.btn-submit{background:#ff6b00;color:#fff;border:0;padding:12px 24px;border-radius:6px;font-weight:700;cursor:pointer;width:100%}
+table{width:100%;background:#fff;border-radius:12px;overflow:hidden;border-collapse:collapse}
+thead{background:#f8f9fa}
+th,td{padding:12px;text-align:left;font-size:13px;border-bottom:1px solid #eee}
+th{font-weight:700}
+td img{width:50px;height:50px;object-fit:cover;border-radius:6px}
+.btn-del{background:#ff3b30;color:#fff;border:0;padding:6px 12px;border-radius:4px;font-size:12px;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="login" id="loginScreen">
+<h2>Admin Login</h2>
+<input type="password" id="pass" placeholder="Enter Password">
+<button onclick="login()">Login</button>
+</div>
+
+<div class="panel" id="panel">
+<div class="header">
+<h2>Admin Panel</h2>
+<button class="logout" onclick="logout()">Logout</button>
+</div>
+
+<div class="tabs">
+<div class="tab active" onclick="showTab('dash',this)">Dashboard</div>
+<div class="tab" onclick="showTab('add',this)">Add Product</div>
+<div class="tab" onclick="showTab('products',this)">All Products</div>
+</div>
+
+<div id="dash" class="content active">
+<div class="stats">
+<div class="stat"><h3 id="statP">0</h3><p>Total Products</p></div>
+<div class="stat"><h3 id="statO">0</h3><p>Total Orders</p></div>
+</div>
+</div>
+
+<div id="add" class="content">
+<form class="form" onsubmit="addProduct(event)">
+<div class="form-group"><label>Product Name</label><input type="text" id="pName" required></div>
+<div class="form-group"><label>Category</label><select id="pCat" required><option value="charger">Charger</option><option value="cable">Cable</option><option value="powerbank">Power Bank</option><option value="earphone">Earphone</option><option value="adapter">Adapter</option><option value="gadget">Gadget</option></select></div>
+<div class="form-group"><label>Brand</label><input type="text" id="pBrand"></div>
+<div class="form-group"><label>Price (৳)</label><input type="number" id="pPrice" required></div>
+<div class="form-group"><label>Stock</label><input type="number" id="pStock" required></div>
+<div class="form-group"><label>Images (comma separated URLs)</label><input type="text" id="pImg" placeholder="https://img1.jpg, https://img2.jpg" required></div>
+<div class="form-group"><label>Colors (comma separated)</label><input type="text" id="pColor" placeholder="Black, White, Blue"></div>
+<div class="form-group"><label>Description</label><textarea id="pDesc"></textarea></div>
+<div class="form-group"><label>Features (comma separated)</label><input type="text" id="pFeat" placeholder="Fast Charging, 6 Months Warranty"></div>
+<button type="submit" class="btn-submit">Add Product</button>
+</form>
+</div>
+
+<div id="products" class="content">
+<table id="pTable"></table>
+</div>
+</div>
+
+<script type="module" src="admin.js"></script>
+</body>
+</html>
