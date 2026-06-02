@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cart - ABSAR UNIQUE TECH</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui}
+body{background:#f5f5f5}
+.header{background:#ff6b00;color:#fff;padding:15px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
+.back-btn{background:#fff;color:#ff6b00;width:35px;height:35px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:20px;font-weight:700}
+.container{max-width:600px;margin:20px auto;padding:0 20px 80px}
+.empty{text-align:center;padding:60px 20px;color:#666}
+.empty-icon{font-size:60px;margin-bottom:20px}
+.btn{background:#ff6b00;color:#fff;padding:14px 30px;border:none;border-radius:8px;font-size:16px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block;margin-top:20px}
+.cart-item{background:#fff;border-radius:12px;padding:15px;margin-bottom:12px;display:flex;gap:12px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.item-img{width:80px;height:80px;border-radius:8px;object-fit:cover;background:#f8f9fa}
+.item-info{flex:1}
+.item-name{font-size:16px;font-weight:700;margin-bottom:6px;color:#333}
+.item-color{font-size:13px;color:#666;margin-bottom:6px}
+.item-price{font-size:18px;font-weight:800;color:#ff6b00;margin-bottom:8px}
+.qty-control{display:flex;align-items:center;gap:10px}
+.qty-btn{width:32px;height:32px;border:2px solid #ff6b00;background:#fff;color:#ff6b00;border-radius:6px;font-size:18px;font-weight:700;cursor:pointer}
+.qty-btn:active{background:#ff6b00;color:#fff}
+.qty-num{font-size:16px;font-weight:700;min-width:30px;text-align:center}
+.remove-btn{background:#ff3b30;color:#fff;border:none;padding:8px 12px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;margin-top:8px}
+.summary{background:#fff;border-radius:12px;padding:20px;margin-top:15px}
+.summary-row{display:flex;justify-content:space-between;margin-bottom:12px;font-size:15px}
+.summary-row.total{font-weight:800;font-size:20px;color:#ff6b00;border-top:2px dashed #ddd;padding-top:12px;margin-top:12px}
+.checkout-btn{background:linear-gradient(135deg,#ff6b00,#ff8533);color:#fff;padding:16px;border:none;border-radius:8px;width:100%;font-size:16px;font-weight:700;cursor:pointer;margin-top:15px}
+</style>
+</head>
+<body>
+<div class="header">
+<a href="index.html" class="back-btn">←</a>
+<div style="font-weight:800">Shopping Cart</div>
+<div style="width:35px"></div>
+</div>
+
+<div class="container" id="cartContainer">
+<div class="empty">
+<div class="empty-icon">🛒</div>
+<h3>Cart এখনো খালি</h3>
+<p style="margin:10px 0">প্রোডাক্ট Buy Now করলে সরাসরি অর্ডার হয়ে যাবে</p>
+<a href="index.html" class="btn">Shop Now</a>
+</div>
+</div>
+
+<script>
+function loadCart(){
+  let cart = JSON.parse(localStorage.getItem('cart')) || [];
+  const container = document.getElementById('cartContainer');
+
+  if(cart.length === 0){
+    container.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">🛒</div>
+        <h3>Cart এখনো খালি</h3>
+        <p style="margin:10px 0">প্রোডাক্ট Add to Cart করলে এখানে দেখাবে</p>
+        <a href="index.html" class="btn">Shop Now</a>
+      </div>
+    `;
+    return;
+  }
+
+  let subtotal = 0;
+  let html = '';
+
+  cart.forEach((item, index) => {
+    subtotal += item.price * item.qty;
+    html += `
+      <div class="cart-item">
+        <img src="${item.img}" alt="${item.name}" class="item-img" onerror="this.src='https://via.placeholder.com/80'">
+        <div class="item-info">
+          <div class="item-name">${item.name}</div>
+          <div class="item-color">Color: ${item.color}</div>
+          <div class="item-price">৳${item.price}</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty(${index}, -1)">-</button>
+            <div class="qty-num">${item.qty}</div>
+            <button class="qty-btn" onclick="changeQty(${index}, 1)">+</button>
+          </div>
+          <button class="remove-btn" onclick="removeItem(${index})">🗑️ Remove</button>
+        </div>
+      </div>
+    `;
+  });
+
+  html += `
+    <div class="summary">
+      <div class="summary-row">
+        <span>Subtotal:</span>
+        <span>৳${subtotal}</span>
+      </div>
+      <div class="summary-row total">
+        <span>Total:</span>
+        <span>৳${subtotal}</span>
+      </div>
+      <button class="checkout-btn" onclick="checkout()">Checkout করতে Buy Now ব্যবহার করুন</button>
+    </div>
+  `;
+
+  container.innerHTML = html;
+}
+
+function changeQty(index, change){
+  let cart = JSON.parse(localStorage.getItem('cart')) || [];
+  cart[index].qty = Math.max(1, cart[index].qty + change);
+  localStorage.setItem('cart', JSON.stringify(cart));
+  loadCart();
+}
+
+function removeItem(index){
+  if(confirm('এই প্রোডাক্ট রিমুভ করবেন?')){
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    cart.splice(index, 1);
+    localStorage.setItem('cart', JSON.stringify(cart));
+    loadCart();
+  }
+}
+
+function checkout(){
+  alert('প্রোডাক্ট ডিটেইলস পেজ থেকে Buy Now দিয়ে অর্ডার করুন।\n\nCart Checkout ফিচার শীঘ্রই আসবে।');
+}
+
+loadCart();
+</script>
+</body>
+</html>
