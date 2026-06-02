@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin Panel - ABSAR UNIQUE TECH</title>
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js';
+import { getDatabase, ref, onValue, push, set, update, remove } from 'https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCI39dQTYcZ76ROxUY73jYB3OZPfjsyegI",
+  authDomain: "absar-unique-tech.firebaseapp.com",
+  databaseURL: "https://absar-unique-tech-default-rtdb.firebaseio.com",
+  projectId: "absar-unique-tech",
+  storageBucket: "absar-unique-tech.firebasestorage.app",
+  messagingSenderId: "576285730220",
+  appId: "1:576285730220:web:1d3cdf9cf3ddc4e00b4609",
+  measurementId: "G-T77Z74DM83"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+window.db = db;
+window.dbRef = ref;
+window.dbOnValue = onValue;
+window.dbPush = push;
+window.dbSet = set;
+window.dbUpdate = update;
+window.dbRemove = remove;
+</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui}
+body{background:#f5f5f5}
+.login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center}
+.login-box{max-width:400px;width:90%;background:#fff;padding:40px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.1)}
+.login-box h2{color:#ff6b00;margin-bottom:20px;text-align:center}
+.login-box input{width:100%;padding:12px;margin-bottom:15px;border:1px solid #ddd;border-radius:6px;font-size:15px}
+.login-box button{width:100%;padding:14px;background:#ff6b00;color:#fff;border:none;border-radius:6px;font-size:16px;font-weight:700;cursor:pointer}
+.hidden{display:none!important}
+.admin-header{background:#ff6b00;color:#fff;padding:15px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
+.admin-header h1{font-size:20px}
+.logout-btn{background:#fff;color:#ff6b00;padding:8px 16px;border:none;border-radius:6px;font-weight:700;cursor:pointer}
+.admin-container{max-width:1200px;margin:20px auto;padding:0 20px}
+.tabs{display:flex;gap:10px;margin-bottom:20px;border-bottom:2px solid #ddd;flex-wrap:wrap}
+.tab{padding:12px 24px;background:#fff;border:none;border-radius:8px 8px 0 0;cursor:pointer;font-weight:600}
+.tab.active{background:#ff6b00;color:#fff}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.card{background:#fff;padding:20px;border-radius:8px;margin-bottom:20px;box-shadow:0 2px 5px rgba(0,0,0,.1)}
+.card h3{color:#ff6b00;margin-bottom:15px}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:15px}
+.form-group{margin-bottom:15px}
+.form-group label{display:block;margin-bottom:6px;font-weight:600;font-size:14px}
+.form-group input,.form-group textarea,.form-group select{width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px}
+.form-group textarea{resize:vertical;min-height:120px;width:100%;white-space:nowrap;overflow-x:scroll;overflow-y:hidden;font-family:monospace;font-size:13px;line-height:1.5;padding:10px}
+.btn{background:#ff6b00;color:#fff;padding:12px 24px;border:none;border-radius:6px;font-weight:700;cursor:pointer}
+.btn:disabled{opacity:0.6;cursor:not-allowed}
+.btn-danger{background:#ff3b30}
+.btn-success{background:#4caf50}
+.btn-warning{background:#ff9800}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin-bottom:20px}
+.stat-card{background:linear-gradient(135deg,#ff6b00,#ff8533);color:#fff;padding:20px;border-radius:8px}
+.stat-card h4{font-size:14px;opacity:.9;margin-bottom:5px}
+.stat-card p{font-size:28px;font-weight:800}
+.stock-badge{background:#4caf50;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700}
+.stock-badge.low{background:#ff9800}
+.stock-badge.out{background:#ff3b30}
+.modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:300;display:none;align-items:center;justify-content:center;padding:15px}
+.modal.active{display:flex}
+.modal-content{background:#fff;border-radius:12px;padding:25px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto}
+.modal-content h3{margin-bottom:20px;color:#ff6b00;font-size:20px}
+.modal-btns{display:flex;gap:10px;margin-top:20px}
+.modal-btns button{flex:1}
+.cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;background:#f9f9f9;padding:12px;border-radius:6px;max-height:200px;overflow-y:auto}
+.cat-grid label{display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px}
+table{width:100%;border-collapse:collapse}
+th,td{padding:12px;text-align:left;border-bottom:1px solid #eee}
+th{background:#f9f9f9;font-weight:600}
+.btn-edit{background:#ff9800;color:#fff;padding:6px 12px;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600}
+.btn-del{background:#ff3b30;color:#fff;padding:6px 12px;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600}
+.btn-stock{background:#4CAF50;color:#fff;padding:6px 12px;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600}
+.btn-stock.soldout{background:#ff9800}
+.order-item{background:#f9f9f9;padding:15px;border-radius:8px;margin-bottom:15px;border-left:4px solid #ff6b00}
+.order-item h4{color:#ff6b00;margin-bottom:10px}
+.order-row{display:flex;justify-content:space-between;margin-bottom:5px;font-size:14px;flex-wrap:wrap;gap:10px}
+.product-slider{display:flex;overflow-x:auto;gap:10px;padding:10px 0}
+.product-slide{flex:0 0 300px;background:#f9f9f9;padding:15px;border-radius:8px}
+.product-slide img,.product-slide iframe{width:100%;height:200px;object-fit:cover;border-radius:6px;margin-bottom:10px}
+.slide-actions{display:flex;gap:5px;justify-content:flex-end;margin-top:10px}
+</style>
+</head>
+<body>
+<div id="loginScreen" class="login-screen">
+<div class="login-box">
+<h2>🔐 Admin Panel Login</h2>
+<input type="password" id="pass" placeholder="Password দিন" onkeypress="if(event.key==='Enter')login()">
+<button onclick="login()">Login</button>
+</div>
+</div>
+
+<div id="panel" class="hidden">
+<div class="admin-header">
+<h1>ABSAR UNIQUE TECH - Admin Panel</h1>
+<button class="logout-btn" onclick="logout()">Logout</button>
+</div>
+
+<div class="admin-container">
+<div class="tabs">
+<button class="tab active" onclick="showTab('dash',this)">📊 Dashboard</button>
+<button class="tab" onclick="showTab('add',this)">➕ Add Product</button>
+<button class="tab" onclick="showTab('products',this)">📦 Products</button>
+<button class="tab" onclick="showTab('orders',this)">🛒 Orders</button>
+</div>
+
+<div id="dash" class="tab-content active">
+<div class="stats-grid">
+<div class="stat-card">
+<h4>Total Products</h4>
+<p id="statP">0</p>
+</div>
+<div class="stat-card">
+<h4>Total Orders</h4>
+<p id="statO">0</p>
+</div>
+<div class="stat-card">
+<h4>Today Sales</h4>
+<p id="todaySales">0 TK</p>
+</div>
+<div class="stat-card">
+<h4>Total Stock</h4>
+<p id="totalStock">0</p>
+</div>
+</div>
+<div class="card">
+<h3>📈 নতুন অর্ডার (Live Firebase)</h3>
+<div id="newOrders"></div>
+</div>
+</div>
+
+<div id="add" class="tab-content">
+<div class="card">
+<h3>➕ নতুন প্রোডাক্ট অ্যাড করুন</h3>
+<form onsubmit="addProduct(event)">
+<div class="form-grid">
+<div class="form-group">
+<label>Product Name *</label>
+<input type="text" id="pName" placeholder="Anker 20W Charger" required>
+</div>
+<div class="form-group">
+<label>Brand</label>
+<input type="text" id="pBrand" placeholder="Anker">
+</div>
+<div class="form-group">
+<label>Price (TK) *</label>
+<input type="number" id="pPrice" placeholder="1450" required>
+</div>
+<div class="form-group">
+<label>Stock কয়টা আছে *</label>
+<input type="number" id="pStock" placeholder="50" value="0" required>
+</div>
+<div class="form-group">
+<label>Colors - যত ইচ্ছা লিখ, যেকোনো ভাষায়</label>
+<input type="text" id="pColor" placeholder="Black, কালো, Red, লাল, White, সাদা, Blue, নীল">
+<p style="font-size:12px;color:#999;margin-top:5px">* Black/কালো, Red/লাল, White/সাদা - যেকোনো ভাষায় কমা দিয়ে আলাদা করে লিখ। সব কালার সাপোর্ট করে।</p>
+</div>
+<div class="form-group">
+<label>Category * - যতগুলা ইচ্ছা সিলেক্ট কর</label>
+<div class="cat-grid">
+<label><input type="checkbox" name="pCategory" value="mobile"> Mobile</label>
+<label><input type="checkbox" name="pCategory" value="charger"> Charger</label>
+<label><input type="checkbox" name="pCategory" value="powerbank"> Power Bank</label>
+<label><input type="checkbox" name="pCategory" value="earbuds"> Earbuds</label>
+<label><input type="checkbox" name="pCategory" value="neckband"> Neckband</label>
+<label><input type="checkbox" name="pCategory" value="headphone"> Headphone</label>
+<label><input type="checkbox" name="pCategory" value="speaker"> Speaker</label>
+<label><input type="checkbox" name="pCategory" value="soundbox"> Sound Box</label>
+<label><input type="checkbox" name="pCategory" value="smartwatch"> Smart Watch</label>
+<label><input type="checkbox" name="pCategory" value="smarttv"> Smart TV</label>
+<label><input type="checkbox" name="pCategory" value="tvbox"> TV Box</label>
+<label><input type="checkbox" name="pCategory" value="remote"> Remote</label>
+<label><input type="checkbox" name="pCategory" value="fan"> Fan</label>
+<label><input type="checkbox" name="pCategory" value="light"> Light</label>
+<label><input type="checkbox" name="pCategory" value="gaming"> Gaming</label>
+<label><input type="checkbox" name="pCategory" value="console"> Console</label>
+<label><input type="checkbox" name="pCategory" value="cable"> Cable</label>
+<label><input type="checkbox" name="pCategory" value="adapter"> Adapter</label>
+<label><input type="checkbox" name="pCategory" value="case"> Case</label>
+<label><input type="checkbox" name="pCategory" value="holder"> Holder</label>
+<label><input type="checkbox" name="pCategory" value="accessories"> Accessories</label>
+</div>
+</div>
+</div>
+
+<div class="form-group">
+<label>Image/Video Link - এক লাইনে একটা</label>
+<textarea id="pImg" rows="10" spellcheck="false" placeholder="https://i.ibb.co/1.jpg
+https://www.youtube.com/watch?v=abc123xyz456789
+data:image/jpeg;base64,/9j/4AAQSkZJRg..."></textarea>
+<p style="font-size:12px;color:#999;margin-top:8px">* YouTube লিংক যত লম্বাই হোক স্ক্রল করে দেখ। এক লাইনে একটা। Enter চেপে নতুন লিংক।</p>
+</div>
+
+<div class="form-group">
+<label>Features - কমা দিয়ে আলাদা</label>
+<input type="text" id="pFeat" placeholder="20W Fast, PD, QC3.0">
+</div>
+<div class="form-group">
+<label>Details</label>
+<textarea id="pDetails" placeholder="প্রোডাক্টের বিস্তারিত লিখুন..."></textarea>
+</div>
+<div class="form-group">
+<label>Description Box</label>
+<textarea id="pDesc" placeholder="ছোট বিবরণ..."></textarea>
+</div>
+<button type="submit" class="btn">✅ Add Product</button>
+</form>
+</div>
+</div>
+
+<div id="products" class="tab-content">
+<div class="card">
+<h3>📦 সব প্রোডাক্ট - Slide করে দেখ</h3>
+<div class="product-slider" id="productSlider"></div>
+<table id="pTable" style="margin-top:20px"></table>
+</div>
+</div>
+
+<div id="orders" class="tab-content">
+<div class="card">
+<h3>🛒 সব অর্ডার - নতুনগুলো উপরে (Live)</h3>
+<div id="orderList"></div>
+</div>
+</div>
+
+</div>
+</div>
+
+<div class="modal" id="editModal">
+<div class="modal-content">
+<h3>✏️ Edit Product - সব আবার Edit করতে পারবি</h3>
+<input type="hidden" id="editId">
+<div class="form-grid">
+<div class="form-group">
+<label>Product Name *</label>
+<input type="text" id="editName">
+</div>
+<div class="form-group">
+<label>Brand</label>
+<input type="text" id="editBrand">
+</div>
+<div class="form-group">
+<label>Price (TK) *</label>
+<input type="number" id="editPrice">
+</div>
+<div class="form-group">
+<label>Stock কয়টা আছে *</label>
+<input type="number" id="editStock">
+</div>
+<div class="form-group">
+<label>Colors - যত ইচ্ছা লিখ, যেকোনো ভাষায়</label>
+<input type="text" id="editColor" placeholder="Black, কালো, Red, লাল">
+<p style="font-size:12px;color:#999;margin-top:5px">* Black/কালো, Red/লাল - যেকোনো ভাষায় লিখতে পারবি</p>
+</div>
+<div class="form-group">
+<label>Category * - যতগুলা ইচ্ছা সিলেক্ট কর</label>
+<div class="cat-grid">
+<label><input type="checkbox" name="editCategory" value="mobile"> Mobile</label>
+<label><input type="checkbox" name="editCategory" value="charger"> Charger</label>
+<label><input type="checkbox" name="editCategory" value="powerbank"> Power Bank</label>
+<label><input type="checkbox" name="editCategory" value="earbuds"> Earbuds</label>
+<label><input type="checkbox" name="editCategory" value="neckband"> Neckband</label>
+<label><input type="checkbox" name="editCategory" value="headphone"> Headphone</label>
+<label><input type="checkbox" name="editCategory" value="speaker"> Speaker</label>
+<label><input type="checkbox" name="editCategory" value="soundbox"> Sound Box</label>
+<label><input type="checkbox" name="editCategory" value="smartwatch"> Smart Watch</label>
+<label><input type="checkbox" name="editCategory" value="smarttv"> Smart TV</label>
+<label><input type="checkbox" name="editCategory" value="tvbox"> TV Box</label>
+<label><input type="checkbox" name="editCategory" value="remote"> Remote</label>
+<label><input type="checkbox" name="editCategory" value="fan"> Fan</label>
+<label><input type="checkbox" name="editCategory" value="light"> Light</label>
+<label><input type="checkbox" name="editCategory" value="gaming"> Gaming</label>
+<label><input type="checkbox" name="editCategory" value="console"> Console</label>
+<label><input type="checkbox" name="editCategory" value="cable"> Cable</label>
+<label><input type="checkbox" name="editCategory" value="adapter"> Adapter</label>
+<label><input type="checkbox" name="editCategory" value="case"> Case</label>
+<label><input type="checkbox" name="editCategory" value="holder"> Holder</label>
+<label><input type="checkbox" name="editCategory" value="accessories"> Accessories</label>
+</div>
+</div>
+</div>
+<div class="form-group">
+<label>Image/Video Link - এক লাইনে একটা</label>
+<textarea id="editImg" rows="10" spellcheck="false"></textarea>
+</div>
+<div class="form-group">
+<label>Features - কমা দিয়ে আলাদা</label>
+<input type="text" id="editFeatures">
+</div>
+<div class="form-group">
+<label>Details</label>
+<textarea id="editDetails"></textarea>
+</div>
+<div class="form-group">
+<label>Description Box</label>
+<textarea id="editDesc"></textarea>
+</div>
+<div class="modal-btns">
+<button class="btn btn-success" onclick="updateProduct()">✅ Update Product</button>
+<button class="btn" style="background:#666" onclick="closeEditModal()">Cancel</button>
+</div>
+</div>
+</div>
+
+<script type="module">
+if(localStorage.getItem('adminLogged')==='true'){
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('panel').classList.remove('hidden');
+  initFirebase();
+}
+
+window.login = function(){
+  if(document.getElementById('pass').value==='3316'){
+    localStorage.setItem('adminLogged','true');
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('panel').classList.remove('hidden');
+    initFirebase();
+  } else {
+    alert('Wrong password!');
+  }
+}
+
+window.logout = function(){
+  localStorage.removeItem('adminLogged');
+  location.reload();
+}
+
+window.showTab = function(tab,e){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  e.classList.add('active');
+  document.getElementById(tab).classList.add('active');
+  if(tab==='products') loadProducts();
+  if(tab==='orders') loadOrders();
+  if(tab==='dash') loadStats();
+}
+
+function initFirebase(){
+  loadStats();
+  loadProducts();
+  loadOrders();
+}
+
+function loadStats(){
+  const productsRef = window.dbRef(window.db, 'products');
+  const ordersRef = window.dbRef(window.db, 'orders');
+
+  window.dbOnValue(productsRef, (snapshot) => {
+    const products = [];
+    snapshot.forEach(child => {
+      products.push({id: child.key, ...child.val()});
+    });
+    document.getElementById('statP').textContent = products.length;
+    const totalStock = products.reduce((sum,p)=>sum+parseInt(p.stock||0),0);
+    document.getElementById('totalStock').textContent = totalStock;
+  });
+
+  window.dbOnValue(ordersRef, (snapshot) => {
+    const orders = [];
+    snapshot.forEach(child => {
+      orders.push({id: child.key, ...child.val()});
+    });
+    document.getElementById('statO').textContent = orders.length;
+
+    const today = new Date().toDateString();
+    const todayOrders = orders.filter(o=>{
+      const orderDate = o.orderTime? new Date(o.orderTime) : new Date();
+      return orderDate.toDateString()===today;
+    });
+    document.getElementById('todaySales').textContent = todayOrders.reduce((s,o)=>s+parseInt(o.totalAmount||0),0)+' TK';
+
+    let html = '';
+    orders.slice(-5).reverse().forEach(o=>{
+      html += `
+        <div class="order-item">
+          <h4>${o.customerName || 'N/A'} - ${o.productName || 'N/A'}</h4>
+          <div class="order-row">
+            <span>📱 ${o.phone || 'N/A'}</span>
+            <span>৳${o.totalAmount || 0}</span>
+            <span>Status: ${o.orderStatus||'Pending'}</span>
+          </div>
+        </div>
+      `;
+    });
+    document.getElementById('newOrders').innerHTML = html || '<p>কোনো নতুন অর্ডার নাই</p>';
+  });
+}
+
+window.addProduct = async function(e){
+  e.preventDefault();
+  const categories = Array.from(document.querySelectorAll('input[name="pCategory"]:checked')).map(cb=>cb.value);
+
+  const product = {
+    name: document.getElementById('pName').value,
+    brand: document.getElementById('pBrand').value,
+    price: document.getElementById('pPrice').value,
+    stock: document.getElementById('pStock').value,
+    color: document.getElementById('pColor').value,
+    category: categories.join(','),
+    images: document.getElementById('pImg').value,
+    features: document.getElementById('pFeat').value,
+    details: document.getElementById('pDetails').value,
+    description: document.getElementById('pDesc').value,
+    date: new Date().toISOString()
+  };
+
+  try{
+    await window.dbSet(window.dbPush(window.dbRef(window.db, 'products')), product);
+    alert('✅ Product Add হইছে! Home Page এ দেখা যাবে');
+    e.target.reset();
+  }catch(err){
+    alert('❌ Error: '+err.message);
+  }
+}
+
+function loadProducts(){
+  const productsRef = window.dbRef(window.db, 'products');
+  window.dbOnValue(productsRef, (snapshot) => {
+    const products = [];
+    snapshot.forEach(child => {
+      products.push({id: child.key, ...child.val()});
+    });
+
+    let sliderHtml = '';
+    products.forEach(p=>{
+      const stock = parseInt(p.stock||0);
+      const isSoldOut = stock<=0;
+      const imgList = (p.images||'').split('\n').filter(i=>i.trim());
+      const firstImg = imgList[0]||'';
+      let mediaHtml = '';
+      if(firstImg.includes('youtube.com')||firstImg.includes('youtu.be')){
+        const vidId = firstImg.split('v=')[1]||firstImg.split('/').pop().split('?')[0];
+        mediaHtml = `<iframe src="https://www.youtube.com/embed/${vidId}" frameborder="0"></iframe>`;
+      } else if(firstImg) {
+        mediaHtml = `<img src="${firstImg}" alt="${p.name}">`;
+      }
+
+      sliderHtml += `
+        <div class="product-slide">
+          ${mediaHtml}
+          <h4>${p.name}</h4>
+          <p>৳${p.price}</p>
+          <p>Stock: ${stock}</p>
+          <div class="slide-actions">
+            <button class="btn-stock ${isSoldOut?'soldout':''}" onclick="toggleStock('${p.id}','${p.stock}')">${isSoldOut?'Sold In':'Sold Out'}</button>
+            <button class="btn-edit" onclick="openEditModal('${p.id}')">Edit</button>
+            <button class="btn-del" onclick="deleteProduct('${p.id}')">Delete</button>
+          </div>
+        </div>
+      `;
+    });
+    document.getElementById('productSlider').innerHTML = sliderHtml || '<p>কোনো প্রোডাক্ট নাই</p>';
+
+    let html = '<thead><tr><th>Name</th><th>Price</th><th>Stock</th><th>Category</th><th>Actions</th></tr></thead><tbody>';
+
+    products.forEach(p=>{
+      const stock = parseInt(p.stock||0);
+      let stockBadge = stock>10?`<span class="stock-badge">In Stock: ${stock}</span>`:stock>0?`<span class="stock-badge low">Low: ${stock}</span>`:`<span class="stock-badge out">Sold Out</span>`;
+      const isSoldOut = stock<=0;
+
+      html += `
+        <tr>
+          <td>${p.name}</td>
+          <td>৳${p.price}</td>
+          <td>${stockBadge}</td>
+          <td>${p.category||'-'}</td>
+          <td>
+            <button class="btn-edit" onclick="openEditModal('${p.id}')">Edit</button>
+            <button class="btn-stock ${isSoldOut?'soldout':''}" onclick="toggleStock('${p.id}','${p.stock}')">${isSoldOut?'Sold In':'Sold Out'}</button>
+            <button class="btn-del" onclick="deleteProduct('${p.id}')">Delete</button>
+          </td>
+        </tr>
+      `;
+    });
+
+    html += '</tbody>';
+    document.getElementById('pTable').innerHTML = html || '<tr><td colspan="5" style="text-align:center;padding:20px">কোনো প্রোডাক্ট নাই</td></tr>';
+  });
+}
+
+window.openEditModal = async function(id){
+  const productRef = window.dbRef(window.db, 'products/' + id);
+  window.dbOnValue(productRef, (snapshot) => {
+    const p = snapshot.val();
+    if(!p) return;
+
+    document.getElementById('editId').value = id;
+    document.getElementById('editName').value = p.name;
+    document.getElementById('editBrand').value = p.brand||'';
+    document.getElementById('editPrice').value = p.price;
+    document.getElementById('editStock').value = p.stock;
+    document.getElementById('editColor').value = p.color||'';
+    document.getElementById('editImg').value = p.images||'';
+    document.getElementById('editFeatures').value = p.features||'';
+    document.getElementById('editDetails').value = p.details||'';
+    document.getElementById('editDesc').value = p.description||'';
+
+    document.querySelectorAll('input[name="editCategory"]').forEach(cb=>cb.checked=false);
+    if(p.category){
+      p.category.split(',').forEach(cat=>{
+        const cb = document.querySelector(`input[name="editCategory"][value="${cat.trim()}"]`);
+        if(cb) cb.checked = true;
+      });
+    }
+
+    document.getElementById('editModal').classList.add('active');
+  }, {onlyOnce: true});
+}
+
+window.closeEditModal = function(){
+  document.getElementById('editModal').classList.remove('active');
+}
+
+window.updateProduct = async function(){
+  const id = document.getElementById('editId').value;
+  const categories = Array.from(document.querySelectorAll('input[name="editCategory"]:checked')).map(cb=>cb.value);
+
+  const product = {
+    name: document.getElementById('editName').value,
+    brand: document.getElementById('editBrand').value,
+    price: document.getElementById('editPrice').value,
+    stock: document.getElementById('editStock').value,
+    color: document.getElementById('editColor').value,
+    category: categories.join(','),
+    images: document.getElementById('editImg').value,
+    features: document.getElementById('editFeatures').value,
+    details: document.getElementById('editDetails').value,
+    description: document.getElementById('editDesc').value
+  };
+
+  try{
+    await window.dbUpdate(window.dbRef(window.db, 'products/' + id), product);
+    alert('✅ Product Update হইছে!');
+    closeEditModal();
+  }catch(e){
+    alert('❌ Update ফেইল!');
+  }
+}
+
+window.toggleStock = async function(id,currentStock){
+  const newStock = parseInt(currentStock)>0?0:10;
+  try{
+    await window.dbUpdate(window.dbRef(window.db, 'products/' + id), {stock: newStock});
+    alert(newStock>0?'✅ Sold In হইছে!':'✅ Sold Out হইছে!');
+  }catch(e){
+    alert('❌ Stock আপডেট ফেইল!');
+  }
+}
+
+window.deleteProduct = async function(id){
+  if(!confirm('এই প্রোডাক্ট Delete করবেন?')) return;
+  try{
+    await window.dbRemove(window.dbRef(window.db, 'products/' + id));
+    alert('✅ Delete হইছে!');
+  }catch(e){
+    alert('❌ Delete ফেইল!');
+  }
+}
+
+function loadOrders(){
+  const ordersRef = window.dbRef(window.db, 'orders');
+  window.dbOnValue(ordersRef, (snapshot) => {
+    const orders = [];
+    snapshot.forEach(child => {
+      orders.push({id: child.key, ...child.val()});
+    });
+    orders.reverse();
+
+    let html = '';
+    orders.forEach(o=>{
+      const paymentInfo = o.paymentMethod==='Cash on Delivery'?'COD':o.paymentMethod+' - '+(o.transactionId||'N/A');
+
+      html += `
+        <div class="order-item">
+          <h4>Order #${o.id} - ${o.orderTime || new Date().toLocaleDateString('bn-BD')}</h4>
+          <div class="order-row">
+            <span><strong>Customer:</strong> ${o.customerName || 'N/A'}</span>
+            <span><strong>Phone:</strong> ${o.phone || 'N/A'}</span>
+            <span><strong>Product:</strong> ${o.productName || 'N/A'}</span>
+          </div>
+          <div class="order-row">
+            <span><strong>Qty:</strong> ${o.quantity||1}</span>
+            <span><strong>Total:</strong> ৳${o.totalAmount || 0}</span>
+            <span><strong>Delivery:</strong> ${o.deliveryArea || 'N/A'} (৳${o.deliveryCharge||0})</span>
+          </div>
+          <div class="order-row">
+            <span><strong>Address:</strong> ${o.address || 'N/A'}</span>
+            <span><strong>Payment:</strong> ${paymentInfo}</span>
+            <span class="stock-badge">${o.orderStatus||'Pending'}</span>
+          </div>
+          <div class="order-row" style="margin-top:10px">
+            <select onchange="updateOrderStatus('${o.id}',this.value)" style="padding:6px;border-radius:6px;border:1px solid #ddd">
+              <option value="Pending" ${o.orderStatus==='Pending'?'selected':''}>Pending</option>
+              <option value="Confirmed" ${o.orderStatus==='Confirmed'?'selected':''}>Confirmed</option>
+              <option value="Delivered" ${o.orderStatus==='Delivered'?'selected':''}>Delivered</option>
+              <option value="Cancelled" ${o.orderStatus==='Cancelled'?'selected':''}>Cancelled</option>
+            </select>
+            <button class="btn-del" onclick="deleteOrder('${o.id}')">Delete Order</button>
+          </div>
+        </div>
+      `;
+    });
+
+    document.getElementById('orderList').innerHTML = html || '<p style="text-align:center;padding:20px">কোনো অর্ডার নাই</p>';
+  });
+}
+
+window.updateOrderStatus = async function(id,status){
+  try{
+    await window.dbUpdate(window.dbRef(window.db, 'orders/' + id), {orderStatus: status});
+  }catch(e){
+    alert('Status আপডেট ফেইল!');
+  }
+}
+
+window.deleteOrder = async function(id){
+  if(!confirm('এই অর্ডার Delete করবেন?')) return;
+  try{
+    await window.dbRemove(window.dbRef(window.db, 'orders/' + id));
+    alert('✅ অর্ডার Delete হইছে!');
+  }catch(e){
+    alert('❌ Delete ফেইল!');
+  }
+}
+</script>
+</body>
+</html>
