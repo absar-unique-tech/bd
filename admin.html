@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin Panel - ABSAR UNIQUE TECH</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui}
+body{background:#f5f5f5}
+.header{background:#ff6b00;color:#fff;padding:15px;display:flex;justify-content:space-between;align-items:center}
+.header h1{font-size:20px}
+.logout{background:#fff;color:#ff6b00;padding:8px 16px;border:none;border-radius:6px;font-weight:700;cursor:pointer}
+.container{max-width:1200px;margin:20px auto;padding:0 20px}
+.tabs{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.tab{background:#fff;padding:12px 24px;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.tab.active{background:#ff6b00;color:#fff}
+.section{display:none;background:#fff;border-radius:12px;padding:25px;box-shadow:0 2px 15px rgba(0,0,0,.1)}
+.section.active{display:block}
+.section h2{color:#ff6b00;margin-bottom:20px}
+.form-group{margin-bottom:18px}
+.form-group label{display:block;margin-bottom:6px;font-weight:600;font-size:14px}
+.form-group input,.form-group textarea,.form-group select{width:100%;padding:12px;border:2px solid #ddd;border-radius:8px;font-size:15px}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{outline:none;border-color:#ff6b00}
+.btn{background:#ff6b00;color:#fff;padding:12px 30px;border:none;border-radius:8px;font-size:16px;font-weight:700;cursor:pointer}
+.btn:hover{background:#ff8533}
+.btn:disabled{background:#ccc;cursor:not-allowed}
+.table-wrap{overflow-x:auto;margin-top:20px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:12px;text-align:left;border-bottom:1px solid #eee}
+th{background:#f8f9fa;font-weight:700;color:#333}
+tr:hover{background:#f8f9fa}
+.action-btn{padding:6px 12px;border:none;border-radius:5px;font-size:13px;font-weight:600;cursor:pointer;margin:2px}
+.edit-btn{background:#2196F3;color:#fff}
+.delete-btn{background:#ff3b30;color:#fff}
+.stock-btn{background:#4CAF50;color:#fff}
+.stock-btn.soldout{background:#ff9800}
+.status-badge{padding:4px 10px;border-radius:12px;font-size:12px;font-weight:700}
+.status-pending{background:#fff3cd;color:#856404}
+.status-confirmed{background:#d4edda;color:#155724}
+.status-delivered{background:#d1ecf1;color:#0c5460}
+.status-cancelled{background:#f8d7da;color:#721c24}
+.refresh-btn{background:#4CAF50;color:#fff;padding:8px 16px;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:15px}
+</style>
+</head>
+<body>
+<div class="header">
+<h1>🛍️ Admin Panel</h1>
+<button class="logout" onclick="logout()">Logout</button>
+</div>
+
+<div class="container">
+<div class="tabs">
+<button class="tab active" onclick="switchTab('products',this)">📦 Products</button>
+<button class="tab" onclick="switchTab('orders',this)">📋 Orders</button>
+</div>
+
+<!-- Products Section -->
+<div class="section active" id="productsSection">
+<h2>Product Management</h2>
+<div class="form-group">
+<label>Product Name *</label>
+<input type="text" id="prodName" placeholder="প্রোডাক্টের নাম">
+</div>
+<div class="form-group">
+<label>Price *</label>
+<input type="number" id="prodPrice" placeholder="দাম">
+</div>
+<div class="form-group">
+<label>Image URL *</label>
+<input type="text" id="prodImage" placeholder="https://example.com/image.jpg">
+</div>
+<div class="form-group">
+<label>Category *</label>
+<input type="text" id="prodCategory" placeholder="Category">
+</div>
+<div class="form-group">
+<label>Colors (কমা দিয়ে আলাদা)</label>
+<input type="text" id="prodColor" placeholder="Black, White, Red">
+</div>
+<div class="form-group">
+<label>Description</label>
+<textarea id="prodDesc" rows="3" placeholder="প্রোডাক্টের বিবরণ"></textarea>
+</div>
+<div class="form-group">
+<label>Stock Status *</label>
+<select id="prodStock">
+<option value="true">In Stock</option>
+<option value="false">Sold Out</option>
+</select>
+</div>
+<button class="btn" id="saveBtn" onclick="saveProduct()">Save Product</button>
+
+<div class="table-wrap">
+<table id="productsTable">
+<thead>
+<tr>
+<th>Name</th>
+<th>Price</th>
+<th>Category</th>
+<th>Colors</th>
+<th>Stock</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody id="productsBody"></tbody>
+</table>
+</div>
+</div>
+
+<!-- Orders Section -->
+<div class="section" id="ordersSection">
+<h2>Order Management</h2>
+<button class="refresh-btn" onclick="loadOrders()">🔄 Refresh Orders</button>
+<div class="table-wrap">
+<table id="ordersTable">
+<thead>
+<tr>
+<th>Date</th>
+<th>Customer</th>
+<th>Phone</th>
+<th>Product</th>
+<th>Color</th>
+<th>Qty</th>
+<th>Total</th>
+<th>Address</th>
+<th>Status</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody id="ordersBody"></tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+<script>
+const SHEETDB_API = 'https://sheetdb.io/api/v1/2mwn6h34a9ytj';
+let editId = null;
+
+if(localStorage.getItem('adminLogged')!== 'true'){
+  window.location = 'admin-login.html';
+}
+
+function logout(){
+  localStorage.removeItem('adminLogged');
+  window.location = 'admin-login.html';
+}
+
+function switchTab(tab, el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById(tab + 'Section').classList.add('active');
+  if(tab === 'orders') loadOrders();
+  if(tab === 'products') loadProducts();
+}
+
+async function loadProducts(){
+  try{
+    const res = await fetch(SHEETDB_API);
+    const data = await res.json();
+    const products = data.filter(item => item.type === 'product');
+
+    let html = '';
+    products.forEach(p => {
+      const isStock = p.stock === 'true' || p.stock === true;
+      html += `
+        <tr>
+          <td>${p.name}</td>
+          <td>৳${p.price}</td>
+          <td>${p.category || '-'}</td>
+          <td>${p.color || '-'}</td>
+          <td><span class="status-badge ${isStock? 'status-confirmed' : 'status-cancelled'}">${isStock? 'In Stock' : 'Sold Out'}</span></td>
+          <td>
+            <button class="action-btn edit-btn" onclick="editProduct('${p.id}')">Edit</button>
+            <button class="action-btn stock-btn ${isStock? '' : 'soldout'}" onclick="toggleStock('${p.id}', '${p.stock}')">${isStock? 'Sold Out' : 'In Stock'}</button>
+            <button class="action-btn delete-btn" onclick="deleteProduct('${p.id}')">Delete</button>
+          </td>
+        </tr>
+      `;
+    });
+    document.getElementById('productsBody').innerHTML = html || '<tr><td colspan="6" style="text-align:center;padding:20px">কোনো প্রোডাক্ট নাই</td></tr>';
+  }catch(e){
+    console.error(e);
+    alert('প্রোডাক্ট লোড ফেইল!');
+  }
+}
+
+async function saveProduct(){
+  const name = document.getElementById('prodName').value.trim();
+  const price = document.getElementById('prodPrice').value.trim();
+  const image = document.getElementById('prodImage').value.trim();
+  const category = document.getElementById('prodCategory').value.trim();
+  const color = document.getElementById('prodColor').value.trim();
+  const description = document.getElementById('prodDesc').value.trim();
+  const stock = document.getElementById('prodStock').value;
+
+  if(!name ||!price ||!image){
+    alert('Name, Price, Image লাগবে!');
+    return;
+  }
+
+  const productData = {
+    type: 'product',
+    name: name,
+    price: price,
+    image: image,
+    category: category,
+    color: color,
+    description: description,
+    stock: stock,
+    date: new Date().toISOString()
+  };
+
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  try{
+    if(editId){
+      await fetch(SHEETDB_API + '/id/' + editId, {
+        method: 'PATCH',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({data: productData})
+      });
+      editId = null;
+    } else {
+      productData.id = Date.now().toString();
+      await fetch(SHEETDB_API, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({data: [productData]})
+      });
+    }
+
+    document.getElementById('prodName').value = '';
+    document.getElementById('prodPrice').value = '';
+    document.getElementById('prodImage').value = '';
+    document.getElementById('prodCategory').value = '';
+    document.getElementById('prodColor').value = '';
+    document.getElementById('prodDesc').value = '';
+    document.getElementById('prodStock').value = 'true';
+
+    alert('✅ Product সেভ হইছে!');
+    loadProducts();
+  }catch(e){
+    console.error(e);
+    alert('❌ সেভ ফেইল!');
+  }finally{
+    btn.disabled = false;
+    btn.textContent = 'Save Product';
+  }
+}
+
+async function editProduct(id){
+  try{
+    const res = await fetch(SHEETDB_API + '/id/' + id);
+    const data = await res.json();
+    const p = data[0];
+
+    document.getElementById('prodName').value = p.name;
+    document.getElementById('prodPrice').value = p.price;
+    document.getElementById('prodImage').value = p.image;
+    document.getElementById('prodCategory').value = p.category || '';
+    document.getElementById('prodColor').value = p.color || '';
+    document.getElementById('prodDesc').value = p.description || '';
+    document.getElementById('prodStock').value = p.stock || 'true';
+
+    editId = id;
+    window.scrollTo(0, 0);
+  }catch(e){
+    console.error(e);
+    alert('Edit লোড ফেইল!');
+  }
+}
+
+async function toggleStock(id, currentStock){
+  const newStock = currentStock === 'true' || currentStock === true? 'false' : 'true';
+  try{
+    await fetch(SHEETDB_API + '/id/' + id, {
+      method: 'PATCH',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({data: {stock: newStock}})
+    });
+    alert('✅ Stock আপডেট হইছে!');
+    loadProducts();
+  }catch(e){
+    console.error(e);
+    alert('❌ Stock আপডেট ফেইল!');
+  }
+}
+
+async function deleteProduct(id){
+  if(!confirm('এই প্রোডাক্ট ডিলিট করবেন?')) return;
+
+  try{
+    await fetch(SHEETDB_API + '/id/' + id, {method: 'DELETE'});
+    alert('✅ ডিলিট হইছে!');
+    loadProducts();
+  }catch(e){
+    console.error(e);
+    alert('❌ ডিলিট ফেইল!');
+  }
+}
+
+async function loadOrders(){
+  try{
+    const res = await fetch(SHEETDB_API);
+    const data = await res.json();
+    const orders = data.filter(item => item.type!== 'product').sort((a,b) => new Date(b.date) - new Date(a.date));
+
+    let html = '';
+    orders.forEach(o => {
+      const statusClass = 'status-' + (o.status || 'pending').toLowerCase();
+      html += `
+        <tr>
+          <td>${new Date(o.date).toLocaleDateString('bn-BD')}</td>
+          <td>${o.name}</td>
+          <td>${o.phone}</td>
+          <td>${o.product}</td>
+          <td>${o.color || '-'}</td>
+          <td>${o.quantity || 1}</td>
+          <td>৳${o.total}</td>
+          <td>${o.district}, ${o.address}</td>
+          <td><span class="status-badge ${statusClass}">${o.status || 'Pending'}</span></td>
+          <td>
+            <select onchange="updateOrderStatus('${o.id}', this.value)" style="padding:5px;border-radius:5px;border:1px solid #ddd;margin-bottom:5px">
+              <option value="Pending" ${o.status === 'Pending'? 'selected' : ''}>Pending</option>
+              <option value="Confirmed" ${o.status === 'Confirmed'? 'selected' : ''}>Confirmed</option>
+              <option value="Delivered" ${o.status === 'Delivered'? 'selected' : ''}>Delivered</option>
+              <option value="Cancelled" ${o.status === 'Cancelled'? 'selected' : ''}>Cancelled</option>
+            </select>
+            <button class="action-btn delete-btn" onclick="deleteOrder('${o.id}')">Delete</button>
+          </td>
+        </tr>
+      `;
+    });
+    document.getElementById('ordersBody').innerHTML = html || '<tr><td colspan="10" style="text-align:center;padding:20px">কোনো অর্ডার নাই</td></tr>';
+  }catch(e){
+    console.error(e);
+    alert('অর্ডার লোড ফেইল!');
+  }
+}
+
+async function updateOrderStatus(id, status){
+  try{
+    await fetch(SHEETDB_API + '/id/' + id, {
+      method: 'PATCH',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({data: {status: status}})
+    });
+    loadOrders();
+  }catch(e){
+    console.error(e);
+    alert('Status আপডেট ফেইল!');
+  }
+}
+
+async function deleteOrder(id){
+  if(!confirm('এই অর্ডার ডিলিট করবেন?')) return;
+
+  try{
+    await fetch(SHEETDB_API + '/id/' + id, {method: 'DELETE'});
+    alert('✅ অর্ডার ডিলিট হইছে!');
+    loadOrders();
+  }catch(e){
+    console.error(e);
+    alert('❌ ডিলিট ফেইল!');
+  }
+}
+
+loadProducts();
+</script>
+</body>
+</html>
