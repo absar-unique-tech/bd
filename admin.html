@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin Panel - ABSAR UNIQUE TECH</title>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui}
+body{background:#f5f5f5}
+.login-box{max-width:400px;margin:100px auto;background:#fff;padding:40px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.1)}
+.login-box h2{color:#ff6b00;margin-bottom:20px;text-align:center}
+.login-box input{width:100%;padding:12px;margin-bottom:15px;border:1px solid #ddd;border-radius:6px;font-size:15px}
+.login-box button{width:100%;padding:14px;background:#ff6b00;color:#fff;border:none;border-radius:6px;font-size:16px;font-weight:700;cursor:pointer}
+.hidden{display:none!important}
+.admin-header{background:#ff6b00;color:#fff;padding:15px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
+.admin-header h1{font-size:20px}
+.logout-btn{background:#fff;color:#ff6b00;padding:8px 16px;border:none;border-radius:6px;font-weight:700;cursor:pointer}
+.admin-container{max-width:1200px;margin:20px auto;padding:0 20px}
+.tabs{display:flex;gap:10px;margin-bottom:20px;border-bottom:2px solid #ddd;flex-wrap:wrap}
+.tab{padding:12px 24px;background:#fff;border:none;border-radius:8px 8px 0 0;cursor:pointer;font-weight:600}
+.tab.active{background:#ff6b00;color:#fff}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.card{background:#fff;padding:20px;border-radius:8px;margin-bottom:20px;box-shadow:0 2px 5px rgba(0,0,0,.1)}
+.card h3{color:#ff6b00;margin-bottom:15px}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:15px}
+.form-group{margin-bottom:15px}
+.form-group label{display:block;margin-bottom:6px;font-weight:600;font-size:14px}
+.form-group input,.form-group textarea,.form-group select{width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px}
+.form-group textarea{resize:vertical;min-height:80px}
+.btn{background:#ff6b00;color:#fff;padding:12px 24px;border:none;border-radius:6px;font-weight:700;cursor:pointer}
+.btn:disabled{opacity:0.6;cursor:not-allowed}
+.btn-danger{background:#ff3b30}
+.btn-success{background:#4caf50}
+.btn-warning{background:#ff9800}
+.product-item{background:#f9f9f9;padding:15px;border-radius:8px;margin-bottom:15px;display:flex;gap:15px;align-items:start;border:2px solid transparent}
+.product-item.dragging{opacity:0.5;border-color:#ff6b00}
+.product-img{width:80px;height:80px;object-fit:cover;border-radius:6px}
+.product-info{flex:1}
+.product-info h4{margin-bottom:5px}
+.product-info p{font-size:13px;color:#666;margin-bottom:3px}
+.product-actions{display:flex;gap:10px;flex-direction:column}
+.btn-sm{padding:6px 12px;font-size:13px}
+.order-item{background:#f9f9f9;padding:15px;border-radius:8px;margin-bottom:15px;border-left:4px solid #ff6b00}
+.order-item h4{color:#ff6b00;margin-bottom:10px}
+.order-row{display:flex;justify-content:space-between;margin-bottom:5px;font-size:14px;flex-wrap:wrap;gap:10px}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin-bottom:20px}
+.stat-card{background:linear-gradient(135deg,#ff6b00,#ff8533);color:#fff;padding:20px;border-radius:8px}
+.stat-card h4{font-size:14px;opacity:.9;margin-bottom:5px}
+.stat-card p{font-size:28px;font-weight:800}
+.drag-handle{cursor:grab;font-size:20px;color:#999;padding:0 10px;user-select:none}
+.upload-box{border:2px dashed #ddd;padding:15px;border-radius:8px;margin-bottom:10px}
+.upload-box p{font-size:13px;color:#666;margin-bottom:10px}
+.stock-badge{background:#4caf50;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700}
+.stock-badge.low{background:#ff9800}
+.stock-badge.out{background:#ff3b30}
+.modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:300;display:none;align-items:center;justify-content:center;padding:15px}
+.modal.active{display:flex}
+.modal-content{background:#fff;border-radius:12px;padding:25px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto}
+.modal-content h3{margin-bottom:20px;color:#ff6b00;font-size:20px}
+.modal-btns{display:flex;gap:10px;margin-top:20px}
+.modal-btns button{flex:1}
+.cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;background:#f9f9f9;padding:12px;border-radius:6px;max-height:200px;overflow-y:auto}
+.cat-grid label{display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px}
+table{width:100%;border-collapse:collapse}
+th,td{padding:12px;text-align:left;border-bottom:1px solid #eee}
+th{background:#f9f9f9;font-weight:600}
+.btn-edit{background:#ff9800;color:#fff;padding:6px 12px;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600}
+.btn-del{background:#ff3b30;color:#fff;padding:6px 12px;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600}
+.btn-stock{background:#4CAF50;color:#fff;padding:6px 12px;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600}
+.btn-stock.soldout{background:#ff9800}
+</style>
+</head>
+<body>
+<div id="loginScreen" class="login-box">
+<h2>🔐 Admin Login</h2>
+<input type="password" id="pass" placeholder="Password দিন" onkeypress="if(event.key==='Enter')login()">
+<button onclick="login()">Login</button>
+</div>
+
+<div id="panel" class="hidden">
+<div class="admin-header">
+<h1>ABSAR UNIQUE TECH - Admin Panel</h1>
+<button class="logout-btn" onclick="logout()">Logout</button>
+</div>
+
+<div class="admin-container">
+<div class="tabs">
+<button class="tab active" onclick="showTab('dash',this)">📊 Dashboard</button>
+<button class="tab" onclick="showTab('add',this)">➕ Add Product</button>
+<button class="tab" onclick="showTab('products',this)">📦 Products</button>
+<button class="tab" onclick="showTab('orders',this)">🛒 Orders</button>
+</div>
+
+<div id="dash" class="tab-content active">
+<div class="stats-grid">
+<div class="stat-card">
+<h4>Total Products</h4>
+<p id="statP">0</p>
+</div>
+<div class="stat-card">
+<h4>Total Orders</h4>
+<p id="statO">0</p>
+</div>
+<div class="stat-card">
+<h4>Today Sales</h4>
+<p id="todaySales">0 TK</p>
+</div>
+<div class="stat-card">
+<h4>Total Stock</h4>
+<p id="totalStock">0</p>
+</div>
+</div>
+<div class="card">
+<h3>📈 নতুন অর্ডার (Live)</h3>
+<div id="newOrders"></div>
+</div>
+</div>
+
+<div id="add" class="tab-content">
+<div class="card">
+<h3>➕ নতুন প্রোডাক্ট অ্যাড করুন</h3>
+<form onsubmit="addProduct(event)">
+<div class="form-grid">
+<div class="form-group">
+<label>প্রোডাক্টের নাম *</label>
+<input type="text" id="pName" placeholder="Anker 20W Charger" required>
+</div>
+<div class="form-group">
+<label>Brand</label>
+<input type="text" id="pBrand" placeholder="Anker">
+</div>
+<div class="form-group">
+<label>Price (TK) *</label>
+<input type="number" id="pPrice" placeholder="1450" required>
+</div>
+<div class="form-group">
+<label>Stock কয়টা আছে *</label>
+<input type="number" id="pStock" placeholder="50" value="0" required>
+</div>
+<div class="form-group">
+<label>Color - কমা দিয়ে আলাদা</label>
+<input type="text" id="pColor" placeholder="Black, White, Blue">
+</div>
+<div class="form-group">
+<label>Category * - যতগুলা ইচ্ছা সিলেক্ট কর</label>
+<div class="cat-grid">
+<label><input type="checkbox" name="pCategory" value="mobile"> Mobile</label>
+<label><input type="checkbox" name="pCategory" value="charger"> Charger</label>
+<label><input type="checkbox" name="pCategory" value="powerbank"> Power Bank</label>
+<label><input type="checkbox" name="pCategory" value="earbuds"> Earbuds</label>
+<label><input type="checkbox" name="pCategory" value="neckband"> Neckband</label>
+<label><input type="checkbox" name="pCategory" value="headphone"> Headphone</label>
+<label><input type="checkbox" name="pCategory" value="speaker"> Speaker</label>
+<label><input type="checkbox" name="pCategory" value="smartwatch"> Smart Watch</label>
+<label><input type="checkbox" name="pCategory" value="smarttv"> Smart TV</label>
+<label><input type="checkbox" name="pCategory" value="tvbox"> TV Box</label>
+<label><input type="checkbox" name="pCategory" value="remote"> Remote</label>
+<label><input type="checkbox" name="pCategory" value="fan"> Fan</label>
+<label><input type="checkbox" name="pCategory" value="light"> Light</label>
+<label><input type="checkbox" name="pCategory" value="gaming"> Gaming</label>
+<label><input type="checkbox" name="pCategory" value="console"> Console</label>
+<label><input type="checkbox" name="pCategory" value="cable"> Cable</label>
+<label><input type="checkbox" name="pCategory" value="adapter"> Adapter</label>
+<label><input type="checkbox" name="pCategory" value="case"> Case</label>
+<label><input type="checkbox" name="pCategory" value="holder"> Holder</label>
+<label><input type="checkbox" name="pCategory" value="accessories"> Accessories</label>
+</div>
+</div>
+</div>
+
+<div class="form-group">
+<label>Image/Video Link - এক লাইনে একটা</label>
+<textarea id="pImg" rows="8" placeholder="https://i.ibb.co/1.jpg
+https://youtu.be/abc123
+data:image/jpeg;base64,/9j/4AAQSkZJRg..."></textarea>
+<p style="font-size:12px;color:#999;margin-top:8px">* Enter চেপে নতুন লাইনে নতুন ছবি। YouTube লিংক দিলে ভিডিও দেখাবে। Base64 সাপোর্ট করে।</p>
+</div>
+
+<div class="form-group">
+<label>Features - কমা দিয়ে আলাদা</label>
+<input type="text" id="pFeat" placeholder="20W Fast, PD, QC3.0">
+</div>
+<div class="form-group">
+<label>Details</label>
+<textarea id="pDetails" placeholder="প্রোডাক্টের বিস্তারিত লিখুন..."></textarea>
+</div>
+<div class="form-group">
+<label>Description</label>
+<textarea id="pDesc" placeholder="ছোট বিবরণ..."></textarea>
+</div>
+<button type="submit" class="btn">✅ Save Product</button>
+</form>
+</div>
+</div>
+
+<div id="products" class="tab-content">
+<div class="card">
+<h3>📦 সব প্রোডাক্ট</h3>
+<table id="pTable"></table>
+</div>
+</div>
+
+<div id="orders" class="tab-content">
+<div class="card">
+<h3>🛒 সব অর্ডার - নতুনগুলো উপরে</h3>
+<div id="orderList"></div>
+</div>
+</div>
+
+</div>
+</div>
+
+<div class="modal" id="editModal">
+<div class="modal-content">
+<h3>✏️ Edit Product</h3>
+<input type="hidden" id="editId">
+<div class="form-grid">
+<div class="form-group">
+<label>প্রোডাক্টের নাম *</label>
+<input type="text" id="editName">
+</div>
+<div class="form-group">
+<label>Brand</label>
+<input type="text" id="editBrand">
+</div>
+<div class="form-group">
+<label>Price (TK) *</label>
+<input type="number" id="editPrice">
+</div>
+<div class="form-group">
+<label>Stock কয়টা আছে *</label>
+<input type="number" id="editStock">
+</div>
+<div class="form-group">
+<label>Color - কমা দিয়ে আলাদা</label>
+<input type="text" id="editColor">
+</div>
+<div class="form-group">
+<label>Category * - যতগুলা ইচ্ছা সিলেক্ট কর</label>
+<div class="cat-grid">
+<label><input type="checkbox" name="editCategory" value="mobile"> Mobile</label>
+<label><input type="checkbox" name="editCategory" value="charger"> Charger</label>
+<label><input type="checkbox" name="editCategory" value="powerbank"> Power Bank</label>
+<label><input type="checkbox" name="editCategory" value="earbuds"> Earbuds</label>
+<label><input type="checkbox" name="editCategory" value="neckband"> Neckband</label>
+<label><input type="checkbox" name="editCategory" value="headphone"> Headphone</label>
+<label><input type="checkbox" name="editCategory" value="speaker"> Speaker</label>
+<label><input type="checkbox" name="editCategory" value="smartwatch"> Smart Watch</label>
+<label><input type="checkbox" name="editCategory" value="smarttv"> Smart TV</label>
+<label><input type="checkbox" name="editCategory" value="tvbox"> TV Box</label>
+<label><input type="checkbox" name="editCategory" value="remote"> Remote</label>
+<label><input type="checkbox" name="editCategory" value="fan"> Fan</label>
+<label><input type="checkbox" name="editCategory" value="light"> Light</label>
+<label><input type="checkbox" name="editCategory" value="gaming"> Gaming</label>
+<label><input type="checkbox" name="editCategory" value="console"> Console</label>
+<label><input type="checkbox" name="editCategory" value="cable"> Cable</label>
+<label><input type="checkbox" name="editCategory" value="adapter"> Adapter</label>
+<label><input type="checkbox" name="editCategory" value="case"> Case</label>
+<label><input type="checkbox" name="editCategory" value="holder"> Holder</label>
+<label><input type="checkbox" name="editCategory" value="accessories"> Accessories</label>
+</div>
+</div>
+</div>
+<div class="form-group">
+<label>Image/Video Link - এক লাইনে একটা</label>
+<textarea id="editImg" rows="8"></textarea>
+</div>
+<div class="form-group">
+<label>Features - কমা দিয়ে আলাদা</label>
+<input type="text" id="editFeatures">
+</div>
+<div class="form-group">
+<label>Details</label>
+<textarea id="editDetails"></textarea>
+</div>
+<div class="form-group">
+<label>Description</label>
+<textarea id="editDesc"></textarea>
+</div>
+<div class="modal-btns">
+<button class="btn btn-success" onclick="updateProduct()">✅ Update Product</button>
+<button class="btn" style="background:#666" onclick="closeEditModal()">Cancel</button>
+</div>
+</div>
+</div>
+
+<script type="module">
+const SHEETDB_API = 'https://sheetdb.io/api/v1/2mwn6h34a9ytj';
+let editId = null;
+
+if(localStorage.getItem('adminLogged')==='true'){
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('panel').classList.remove('hidden');
+  loadStats();
+  loadProducts();
+}
+
+window.login = function(){
+  if(document.getElementById('pass').value==='admin123'){
+    localStorage.setItem('adminLogged','true');
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('panel').classList.remove('hidden');
+    loadStats();
+    loadProducts();
+  } else {
+    alert('Wrong password!');
+  }
+}
+
+window.logout = function(){
+  localStorage.removeItem('adminLogged');
+  location.reload();
+}
+
+window.showTab = function(tab,e){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  e.classList.add('active');
+  document.getElementById(tab).classList.add('active');
+  if(tab==='products') loadProducts();
+  if(tab==='orders') loadOrders();
+  if(tab==='dash') loadStats();
+}
+
+async function loadStats(){
+  try{
+    const res = await fetch(SHEETDB_API);
+    const data = await res.json();
+    const products = data.filter(i=>i.type==='product');
+    const orders = data.filter(i=>i.type!=='product');
+    const today = new Date().toDateString();
+    const todayOrders = orders.filter(o=>new Date(o.date).toDateString()===today);
+    const totalStock = products.reduce((sum,p)=>sum+parseInt(p.stock||0),0);
+
+    document.getElementById('statP').textContent = products.length;
+    document.getElementById('statO').textContent = orders.length;
+    document.getElementById('todaySales').textContent = todayOrders.reduce((s,o)=>s+parseInt(o.total||0),0)+' TK';
+    document.getElementById('totalStock').textContent = totalStock;
+
+    let html = '';
+    orders.slice(0,5).forEach(o=>{
+      html += `
+        <div class="order-item">
+          <h4>${o.name} - ${o.product}</h4>
+          <div class="order-row">
+            <span>📱 ${o.phone}</span>
+            <span>৳${o.total}</span>
+            <span>Status: ${o.status||'Pending'}</span>
+          </div>
+        </div>
+      `;
+    });
+    document.getElementById('newOrders').innerHTML = html || '<p>কোনো নতুন অর্ডার নাই</p>';
+  }catch(e){
+    console.error(e);
+  }
+}
+
+window.addProduct = async function(e){
+  e.preventDefault();
+  const categories = Array.from(document.querySelectorAll('input[name="pCategory"]:checked')).map(cb=>cb.value);
+
+  const product = {
+    type: 'product',
+    id: Date.now().toString(),
+    name: document.getElementById('pName').value,
+    brand: document.getElementById('pBrand').value,
+    price: document.getElementById('pPrice').value,
+    stock: document.getElementById('pStock').value,
+    color: document.getElementById('pColor').value,
+    category: categories.join(','),
+    images: document.getElementById('pImg').value,
+    features: document.getElementById('pFeat').value,
+    details: document.getElementById('pDetails').value,
+    description: document.getElementById('pDesc').value,
+    date: new Date().toISOString()
+  };
+
+  try{
+    await fetch(SHEETDB_API, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({data: [product]})
+    });
+    alert('✅ Product সেভ হইছে!');
+    e.target.reset();
+    loadProducts();
+    loadStats();
+  }catch(err){
+    alert('❌ Error: '+err.message);
+  }
+}
+
+async function loadProducts(){
+  try{
+    const res = await fetch(SHEETDB_API);
+    const data = await res.json();
+    const products = data.filter(i=>i.type==='product');
+
+    let html = '<thead><tr><th>Name</th><th>Price</th><th>Stock</th><th>Category</th><th>Actions</th></tr></thead><tbody>';
+
+    products.forEach(p=>{
+      const stock = parseInt(p.stock||0);
+      let stockBadge = stock>10?`<span class="stock-badge">In Stock: ${stock}</span>`:stock>0?`<span class="stock-badge low">Low: ${stock}</span>`:`<span class="stock-badge out">Sold Out</span>`;
+      const isSoldOut = stock<=0;
+
+      html += `
+        <tr>
+          <td>${p.name}</td>
+          <td>৳${p.price}</td>
+          <td>${stockBadge}</td>
+          <td>${p.category||'-'}</td>
+          <td>
+            <button class="btn-edit" onclick="openEditModal('${p.id}')">Edit</button>
+            <button class="btn-stock ${isSoldOut?'soldout':''}" onclick="toggleStock('${p.id}','${p.stock}')">${isSoldOut?'In Stock':'Sold Out'}</button>
+            <button class="btn-del" onclick="deleteProduct('${p.id}')">Delete</button>
+          </td>
+        </tr>
+      `;
+    });
+
+    html += '</tbody>';
+    document.getElementById('pTable').innerHTML = html || '<tr><td colspan="5" style="text-align:center;padding:20px">কোনো প্রোডাক্ট নাই</td></tr>';
+  }catch(e){
+    console.error(e);
+  }
+}
+
+window.openEditModal = async function(id){
+  try{
+    const res = await fetch(SHEETDB_API+'/id/'+id);
+    const data = await res.json();
+    const p = data[0];
+
+    document.getElementById('editId').value = p.id;
+    document.getElementById('editName').value = p.name;
+    document.getElementById('editBrand').value = p.brand||'';
+    document.getElementById('editPrice').value = p.price;
+    document.getElementById('editStock').value = p.stock;
+    document.getElementById('editColor').value = p.color||'';
+    document.getElementById('editImg').value = p.images||'';
+    document.getElementById('editFeatures').value = p.features||'';
+    document.getElementById('editDetails').value = p.details||'';
+    document.getElementById('editDesc').value = p.description||'';
+
+    document.querySelectorAll('input[name="editCategory"]').forEach(cb=>cb.checked=false);
+    if(p.category){
+      p.category.split(',').forEach(cat=>{
+        const cb = document.querySelector(`input[name="editCategory"][value="${cat.trim()}"]`);
+        if(cb) cb.checked = true;
+      });
+    }
+
+    document.getElementById('editModal').classList.add('active');
+  }catch(e){
+    alert('Edit লোড ফেইল!');
+  }
+}
+
+window.closeEditModal = function(){
+  document.getElementById('editModal').classList.remove('active');
+}
+
+window.updateProduct = async function(){
+  const id = document.getElementById('editId').value;
+  const categories = Array.from(document.querySelectorAll('input[name="editCategory"]:checked')).map(cb=>cb.value);
+
+  const product = {
+    name: document.getElementById('editName').value,
+    brand: document.getElementById('editBrand').value,
+    price: document.getElementById('editPrice').value,
+    stock: document.getElementById('editStock').value,
+    color: document.getElementById('editColor').value,
+    category: categories.join(','),
+    images: document.getElementById('editImg').value,
+    features: document.getElementById('editFeatures').value,
+    details: document.getElementById('editDetails').value,
+    description: document.getElementById('editDesc').value
+  };
+
+  try{
+    await fetch(SHEETDB_API+'/id/'+id, {
+      method: 'PATCH',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({data: product})
+    });
+    alert('✅ Product আপডেট হইছে!');
+    closeEditModal();
+    loadProducts();
+    loadStats();
+  }catch(e){
+    alert('❌ Update ফেইল!');
+  }
+}
+
+window.toggleStock = async function(id,currentStock){
+  const newStock = parseInt(currentStock)>0?0:10;
+  try{
+    await fetch(SHEETDB_API+'/id/'+id, {
+      method: 'PATCH',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({data: {stock: newStock}})
+    });
+    alert('✅ Stock আপডেট হইছে!');
+    loadProducts();
+    loadStats();
+  }catch(e){
+    alert('❌ Stock আপডেট ফেইল!');
+  }
+}
+
+window.deleteProduct = async function(id){
+  if(!confirm('এই প্রোডাক্ট ডিলিট করবেন?')) return;
+  try{
+    await fetch(SHEETDB_API+'/id/'+id, {method: 'DELETE'});
+    alert('✅ ডিলিট হইছে!');
+    loadProducts();
+    loadStats();
+  }catch(e){
+    alert('❌ ডিলিট ফেইল!');
+  }
+}
+
+async function loadOrders(){
+  try{
+    const res = await fetch(SHEETDB_API);
+    const data = await res.json();
+    const orders = data.filter(i=>i.type!=='product').sort((a,b)=>new Date(b.date)-new Date(a.date));
+
+    let html = '';
+    orders.forEach(o=>{
+      const statusClass = 'status-' + (o.status||'pending').toLowerCase();
+      const paymentInfo = o.paymentMethod==='cod'?'COD':o.paymentMethod+' - '+(o.transactionId||'N/A');
+
+      html += `
+        <div class="order-item">
+          <h4>Order #${o.id} - ${new Date(o.date).toLocaleDateString('bn-BD')}</h4>
+          <div class="order-row">
+            <span><strong>Customer:</strong> ${o.name}</span>
+            <span><strong>Phone:</strong> ${o.phone}</span>
+            <span><strong>Product:</strong> ${o.product}</span>
+          </div>
+          <div class="order-row">
+            <span><strong>Qty:</strong> ${o.quantity||1}</span>
+            <span><strong>Total:</strong> ৳${o.total}</span>
+            <span><strong>Delivery:</strong> ${o.district} (৳${o.deliveryFee||0})</span>
+          </div>
+          <div class="order-row">
+            <span><strong>Address:</strong> ${o.address}</span>
+            <span><strong>Payment:</strong> ${paymentInfo}</span>
+            <span class="status-badge ${statusClass}">${o.status||'Pending'}</span>
+          </div>
+          <div class="order-row" style="margin-top:10px">
+            <select onchange="updateOrderStatus('${o.id}',this.value)" style="padding:6px;border-radius:6px;border:1px solid #ddd">
+              <option value="Pending" ${o.status==='Pending'?'selected':''}>Pending</option>
+              <option value="Confirmed" ${o.status==='Confirmed'?'selected':''}>Confirmed</option>
+              <option value="Delivered" ${o.status==='Delivered'?'selected':''}>Delivered</option>
+              <option value="Cancelled" ${o.status==='Cancelled'?'selected':''}>Cancelled</option>
+            </select>
+            <button class="btn-del" onclick="deleteOrder('${o.id}')">Delete Order</button>
+          </div>
+        </div>
+      `;
+    });
+
+    document.getElementById('orderList').innerHTML = html || '<p style="text-align:center;padding:20px">কোনো অর্ডার নাই</p>';
+  }catch(e){
+    console.error(e);
+    alert('অর্ডার লোড ফেইল!');
+  }
+}
+
+window.updateOrderStatus = async function(id,status){
+  try{
+    await fetch(SHEETDB_API+'/id/'+id, {
+      method: 'PATCH',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({data: {status: status}})
+    });
+    loadOrders();
+    loadStats();
+  }catch(e){
+    alert('Status আপডেট ফেইল!');
+  }
+}
+
+window.deleteOrder = async function(id){
+  if(!confirm('এই অর্ডার ডিলিট করবেন?')) return;
+  try{
+    await fetch(SHEETDB_API+'/id/'+id, {method: 'DELETE'});
+    alert('✅ অর্ডার ডিলিট হইছে!');
+    loadOrders();
+    loadStats();
+  }catch(e){
+    alert('❌ ডিলিট ফেইল!');
+  }
+}
+</script>
+</body>
+</html>
