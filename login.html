@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Login - ABSAR UNIQUE TECH</title>
+<!-- Firebase Compat - TV Compatible -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui}
+body{background:#f5f5f5;display:flex;align-items:center;justify-content:center;min-height:100vh}
+.login-box{background:#fff;padding:40px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.1);width:90%;max-width:400px}
+.login-box h2{color:#ff6b00;margin-bottom:20px;text-align:center}
+.tabs{display:flex;gap:10px;margin-bottom:25px}
+.tab{flex:1;padding:12px;border:2px solid #ddd;background:#fff;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;text-align:center}
+.tab.active{border-color:#ff6b00;background:#fff3e6;color:#ff6b00}
+.form-group{margin-bottom:15px}
+.form-group input{width:100%;padding:12px;border:1px solid #ddd;border-radius:6px;font-size:15px}
+.form-group input:focus{outline:none;border-color:#ff6b00}
+.login-box button{width:100%;padding:14px;background:#ff6b00;color:#fff;border:none;border-radius:6px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px}
+.login-box button:disabled{background:#ccc;cursor:not-allowed}
+.back-link{text-align:center;margin-top:15px}
+.back-link a{color:#ff6b00;text-decoration:none;font-weight:600}
+.error{color:#ff3b30;font-size:13px;margin-top:-10px;margin-bottom:10px;display:none}
+.logged-in{text-align:center;padding:20px}
+.logged-in h3{font-size:22px;margin-bottom:10px;color:#333}
+.logged-in p{color:#666;margin-bottom:20px}
+.logout-btn{background:#ff3b30;color:#fff;padding:12px 30px;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer}
+.form-section{display:none}
+.form-section.active{display:block}
+</style>
+</head>
+<body>
+<div class="login-box" id="loginBox">
+
+<!-- Login/Register Section -->
+<div id="notLoggedIn">
+<h2>👤 Customer Login</h2>
+<div class="tabs">
+<div class="tab active" onclick="switchTab('login',this)">Login</div>
+<div class="tab" onclick="switchTab('register',this)">Register</div>
+</div>
+
+<!-- Login Form -->
+<div class="form-section active" id="loginForm">
+<div class="form-group">
+<input type="tel" id="loginPhone" placeholder="ফোন নাম্বার *">
+<div class="error" id="loginPhoneError">ফোন নাম্বার দিন</div>
+</div>
+<div class="form-group">
+<input type="password" id="loginPassword" placeholder="পাসওয়ার্ড *">
+<div class="error" id="loginPasswordError">পাসওয়ার্ড দিন</div>
+</div>
+<button onclick="loginUser()" id="loginBtn">Login করুন</button>
+</div>
+
+<!-- Register Form -->
+<div class="form-section" id="registerForm">
+<div class="form-group">
+<input type="text" id="regName" placeholder="পুরো নাম *">
+<div class="error" id="regNameError">নাম লিখুন</div>
+</div>
+<div class="form-group">
+<input type="tel" id="regPhone" placeholder="ফোন নাম্বার *">
+<div class="error" id="regPhoneError">ফোন নাম্বার দিন</div>
+</div>
+<div class="form-group">
+<input type="email" id="regEmail" placeholder="ইমেইল *">
+<div class="error" id="regEmailError">ইমেইল দিন</div>
+</div>
+<div class="form-group">
+<input type="password" id="regPassword" placeholder="পাসওয়ার্ড *">
+<div class="error" id="regPasswordError">পাসওয়ার্ড দিন</div>
+</div>
+<div class="form-group">
+<input type="password" id="regConfirmPassword" placeholder="কনফার্ম পাসওয়ার্ড *">
+<div class="error" id="regConfirmError">পাসওয়ার্ড মিলছে না</div>
+</div>
+<button onclick="registerUser()" id="regBtn">Register করুন</button>
+</div>
+
+<div class="back-link">
+<a href="index.html">← Back to Home</a>
+</div>
+</div>
+
+<!-- Logged In Section -->
+<div id="loggedIn" style="display:none">
+<div class="logged-in">
+<h3>Welcome, <span id="userDisplayName"></span>!</h3>
+<p>আপনি সফলভাবে লগইন করেছেন</p>
+<button class="logout-btn" onclick="logoutUser()">Logout</button>
+<div class="back-link" style="margin-top:20px">
+<a href="index.html">← Back to Home</a>
+</div>
+</div>
+</div>
+
+</div>
+
+<script>
+var firebaseConfig = {
+  apiKey: "AIzaSyCI39dQTYcZ76ROxUY73jYB3OZPfjsyegI",
+  authDomain: "absar-unique-tech.firebaseapp.com",
+  databaseURL: "https://absar-unique-tech-default-rtdb.firebaseio.com",
+  projectId: "absar-unique-tech",
+  storageBucket: "absar-unique-tech.firebasestorage.app",
+  messagingSenderId: "576285730220",
+  appId: "1:576285730220:web:1d3cdf9cf3ddc4e00b4609"
+};
+
+firebase.initializeApp(firebaseConfig);
+var database = firebase.database();
+
+function checkLogin(){
+  var user = localStorage.getItem('userName');
+  if(user){
+    document.getElementById('notLoggedIn').style.display = 'none';
+    document.getElementById('loggedIn').style.display = 'block';
+    document.getElementById('userDisplayName').textContent = user;
+  } else {
+    document.getElementById('notLoggedIn').style.display = 'block';
+    document.getElementById('loggedIn').style.display = 'none';
+  }
+}
+
+function switchTab(tab, el){
+  var tabs = document.querySelectorAll('.tab');
+  for(var i=0;i<tabs.length;i++) tabs[i].classList.remove('active');
+  el.classList.add('active');
+  var sections = document.querySelectorAll('.form-section');
+  for(var i=0;i<sections.length;i++) sections[i].classList.remove('active');
+  document.getElementById(tab + 'Form').classList.add('active');
+}
+
+function loginUser(){
+  var phone = document.getElementById('loginPhone').value.trim();
+  var password = document.getElementById('loginPassword').value.trim();
+
+  var valid = true;
+
+  if(!phone || phone.length < 11){
+    document.getElementById('loginPhoneError').style.display = 'block';
+    valid = false;
+  } else {
+    document.getElementById('loginPhoneError').style.display = 'none';
+  }
+
+  if(!password){
+    document.getElementById('loginPasswordError').style.display = 'block';
+    valid = false;
+  } else {
+    document.getElementById('loginPasswordError').style.display = 'none';
+  }
+
+  if(!valid) return;
+
+  document.getElementById('loginBtn').disabled = true;
+  document.getElementById('loginBtn').textContent = 'Loading...';
+
+  database.ref('users').once('value').then(function(snapshot){
+    var foundUser = null;
+    snapshot.forEach(function(child) {
+      var user = child.val();
+      if(user.phone === phone && user.password === password){
+        foundUser = user;
+      }
+    });
+
+    if(foundUser){
+      localStorage.setItem('userName', foundUser.name);
+      localStorage.setItem('userEmail', foundUser.email);
+      localStorage.setItem('userPhone', foundUser.phone);
+
+      alert('✅ Login সফল!\n\nWelcome, ' + foundUser.name);
+      checkLogin();
+      setTimeout(function(){ window.location.href = 'index.html'; }, 1000);
+    } else {
+      alert('❌ ফোন নাম্বার বা পাসওয়ার্ড ভুল!');
+    }
+    document.getElementById('loginBtn').disabled = false;
+    document.getElementById('loginBtn').textContent = 'Login করুন';
+  }).catch(function(e){
+    alert('❌ Login ফেইল: ' + e.message);
+    document.getElementById('loginBtn').disabled = false;
+    document.getElementById('loginBtn').textContent = 'Login করুন';
+  });
+}
+
+function registerUser(){
+  var name = document.getElementById('regName').value.trim();
+  var phone = document.getElementById('regPhone').value.trim();
+  var email = document.getElementById('regEmail').value.trim();
+  var password = document.getElementById('regPassword').value.trim();
+  var confirmPassword = document.getElementById('regConfirmPassword').value.trim();
+
+  var valid = true;
+
+  if(!name){
+    document.getElementById('regNameError').style.display = 'block';
+    valid = false;
+  } else {
+    document.getElementById('regNameError').style.display = 'none';
+  }
+
+  if(!phone || phone.length < 11){
+    document.getElementById('regPhoneError').style.display = 'block';
+    valid = false;
+  } else {
+    document.getElementById('regPhoneError').style.display = 'none';
+  }
+
+  if(!email || email.indexOf('@')===-1){
+    document.getElementById('regEmailError').style.display = 'block';
+    valid = false;
+  } else {
+    document.getElementById('regEmailError').style.display = 'none';
+  }
+
+  if(!password || password.length < 4){
+    document.getElementById('regPasswordError').style.display = 'block';
+    valid = false;
+  } else {
+    document.getElementById('regPasswordError').style.display = 'none';
+  }
+
+  if(password!== confirmPassword){
+    document.getElementById('regConfirmError').style.display = 'block';
+    valid = false;
+  } else {
+    document.getElementById('regConfirmError').style.display = 'none';
+  }
+
+  if(!valid) return;
+
+  document.getElementById('regBtn').disabled = true;
+  document.getElementById('regBtn').textContent = 'Loading...';
+
+  database.ref('users').once('value').then(function(snapshot){
+    var exists = false;
+    snapshot.forEach(function(child) {
+      var user = child.val();
+      if(user.phone === phone){
+        exists = true;
+      }
+    });
+
+    if(exists){
+      alert('❌ এই ফোন নাম্বার দিয়ে আগে থেকেই Account আছে!');
+      document.getElementById('regBtn').disabled = false;
+      document.getElementById('regBtn').textContent = 'Register করুন';
+      return;
+    }
+
+    var userData = {
+      name: name,
+      phone: phone,
+      email: email,
+      password: password,
+      createdAt: new Date().toLocaleString('en-BD', {timeZone: 'Asia/Dhaka'})
+    };
+
+    database.ref('users').push(userData).then(function(){
+      localStorage.setItem('userName', name);
+      localStorage.setItem('userEmail', email);
+      localStorage.setItem('userPhone', phone);
+
+      alert('✅ Registration সফল!\n\nWelcome, ' + name);
+      checkLogin();
+      setTimeout(function(){ window.location.href = 'index.html'; }, 1000);
+    });
+  }).catch(function(e){
+    alert('❌ Registration ফেইল: ' + e.message);
+    document.getElementById('regBtn').disabled = false;
+    document.getElementById('regBtn').textContent = 'Register করুন';
+  });
+}
+
+function logoutUser(){
+  if(confirm('Logout করতে চান?')){
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userPhone');
+    alert('Logout সফল!');
+    checkLogin();
+  }
+}
+
+checkLogin();
+</script>
+</body>
+  </html>
