@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My Orders - ABSAR UNIQUE TECH</title>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<style>
+:root{--primary:#ff6b00;--dark:#1a1a1a;--gray:#f5f5f5}
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui}
+body{background:var(--gray)}
+.header{background:linear-gradient(135deg,var(--primary),#ff8533);color:#fff;padding:15px;text-align:center;font-size:18px;font-weight:700;position:sticky;top:0;z-index:100}
+.container{padding:15px;padding-bottom:80px}
+.order-card{background:#fff;border-radius:12px;padding:15px;margin-bottom:15px;box-shadow:0 2px 8px rgba(0,0,0,.08);display:flex;gap:12px}
+.order-card img{width:70px;height:70px;object-fit:cover;border-radius:8px;background:#f5f5f5}
+.order-info{flex:1}
+.order-name{font-weight:600;font-size:15px;margin-bottom:4px;line-height:1.3}
+.order-price{color:var(--primary);font-weight:800;font-size:16px}
+.order-date{font-size:12px;color:#666;margin:4px 0}
+.order-color{font-size:12px;color:#666}
+.order-phone{font-size:12px;color:#666}
+.status{background:#e8f5e9;color:#2e7d32;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:700;display:inline-block;margin-top:4px}
+.status.pending{background:#fff3e0;color:#f57c00}
+.status.shipped{background:#e3f2fd;color:#1976d2}
+.status.delivered{background:#e8f5e9;color:#2e7d32}
+.empty{text-align:center;padding:60px 20px;color:#666;line-height:1.6}
+.back-btn{position:fixed;bottom:20px;left:15px;right:15px;background:var(--primary);color:#fff;padding:14px;border:none;border-radius:8px;font-weight:700;text-align:center;text-decoration:none;box-shadow:0 4px 12px rgba(255,107,0,0.3)}
+.loading{text-align:center;padding:40px;color:#666}
+</style>
+</head>
+<body>
+<div class="header">📦 My Orders</div>
+<div class="container" id="orderList">
+<div class="loading">অর্ডার লোড হচ্ছে...</div>
+</div>
+<a href="index.html" class="back-btn">← Back to Home</a>
+
+<script>
+var firebaseConfig = {
+  apiKey: "AIzaSyCI39dQTYcZ76ROxUY73jYB3OZPfjsyegI",
+  authDomain: "absar-unique-tech.firebaseapp.com",
+  databaseURL: "https://absar-unique-tech-default-rtdb.firebaseio.com",
+  projectId: "absar-unique-tech",
+  storageBucket: "absar-unique-tech.firebasestorage.app",
+  messagingSenderId: "576285730220",
+  appId: "1:576285730220:web:1d3cdf9cf3ddc4e00b4609"
+};
+
+firebase.initializeApp(firebaseConfig);
+var database = firebase.database();
+
+var orderList = document.getElementById('orderList');
+var userPhone = localStorage.getItem('userPhone'); // লগইন করা ইউজারের ফোন নম্বর
+var localOrders = JSON.parse(localStorage.getItem('my_orders')) || []; // লগইন ছাড়া করা গেস্ট অর্ডার
+
+// অর্ডার কার্ড ডিজাইন রেন্ডার করার ফাংশন
+function renderOrders(orders) {
+  if (!orders || orders.length === 0) {
+    orderList.innerHTML = '<div class="empty">আপনি এখনো কোনো অর্ডার করেননি 🛒<br><br>প্রোডাক্ট কিনে এখানে দেখুন</div>';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < orders.length; i++) {
+    var order = orders[i];
+    var status = order.orderStatus || order.status || 'Pending';
+    var statusClass = (status === 'New' || status === 'Pending') ? 'pending' : (status === 'Shipped' ? 'shipped' : (status === 'Delivered' ? 'delivered' : 'pending'));
+    
+    var pName = order.productName || (order.items && order.items[0] ? order.items[0].name : 'Product');
+    var pColor = order.productColor || (order.items && order.items[0] ? order.items[0].color : 'N/A');
+    var pImg = order.productImage || (order.items && order.items[0] ? order.items[0].img : 'https://via.placeholder.com/70');
+    var tAmount = order.totalAmount || order.total || 0;
+    var oTime = order.orderTime || order.date || '';
+    
+    html += '<div class="order-card"><img src="'+pImg+'" onerror="this.src=\'https://via.placeholder.com/70\'"><div class="order-info"><div class="order-name">'+pName+'</div><div class="order-color">Color: '+pColor+'</div><div class="order-phone">Phone: '+(order.phone||'N/A')+'</div><div class="order-price">৳'+tAmount+'</div><div class="order-date">📅 '+oTime+'</div><span class="status '+statusClass+'">'+status+'</span></div></div>';
+  }
+  orderList.innerHTML = html;
+}
+
+// ১. প্রথমে গেস্ট অর্ডার (লগইন ছাড়া) শো করাবে
+if (localOrders.length > 0) {
+  renderOrders(localOrders);
+} else if (!userPhone) {
+  orderList.innerHTML = '<div class="empty">আপনি এখনো কোনো অর্ডার করেননি 🛒<br><br>প্রোডাক্ট কিনে এখানে দেখুন</div>';
+}
+
+// ২. ফায়ারবেস থেকে লাইভ ডাটা এনে স্ট্যাটাস আপডেট করবে
+database.ref('orders').on('value', function(snapshot) {
+  var allOrdersToDisplay = [];
+  
+  snapshot.forEach(function(child) {
+    var order = child.val();
+    
+    // চেক করবে এই অর্ডারটি লগইন করা ইউজারের কিনা অথবা গেস্ট ইউজারের লোকাল স্টোরেজে আছে কিনা
+    var isMyPhone = (userPhone && order.phone === userPhone);
+    var isMyGuestOrder = localOrders.some(function(lo) { return lo.orderId === order.orderId; });
+    
+    if (isMyPhone || isMyGuestOrder) {
+      allOrdersToDisplay.push(order);
+    }
+  });
+
+  // ফায়ারবেসে ডাটা পেলে তা লেটেস্ট আপডেট সহ রেন্ডার করবে
+  if (allOrdersToDisplay.length > 0) {
+    allOrdersToDisplay.reverse();
+    renderOrders(allOrdersToDisplay);
+  }
+});
+</script>
+</body>
+</html>
