@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cart - ABSAR UNIQUE TECH | AUT</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap');
+
+:root{
+  --primary:#000000;
+  --primary-light:#222222;
+  --accent:#ffffff;
+  --dark:#111111;
+  --gray:#f4f4f5;
+  --border:#e4e4e7;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins', system-ui, -apple-system, sans-serif}
+body{background:var(--gray);color:var(--dark);padding-bottom:120px}
+
+/* Header Styling */
+.header{
+  background:#000000;
+  color:#fff;
+  padding:14px 16px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  position:sticky;
+  top:0;
+  z-index:100;
+  box-shadow:0 4px 20px rgba(0,0,0,.15);
+  border-bottom:1px solid #222;
+}
+.logo-container{display:flex;align-items:center;gap:12px;cursor:pointer}
+.logo-container img{width:38px;height:38px;border-radius:8px;object-fit:cover;background:#fff;border:1.5px solid #fff}
+.brand-text{display:flex;flex-direction:column}
+.brand-title{font-size:15px;font-weight:800;letter-spacing:1px;color:#fff;text-transform:uppercase;line-height:1.2}
+.brand-subtitle{font-size:10px;font-weight:600;color:#a1a1aa;letter-spacing:2px}
+
+.container{max-width:600px;margin:0 auto;padding:15px;padding-bottom:140px}
+
+/* Cart Item Styling */
+.cart-item{
+  background:#fff;
+  border-radius:12px;
+  padding:15px;
+  margin-bottom:15px;
+  display:flex;
+  gap:12px;
+  border:1px solid var(--border);
+  box-shadow:0 2px 8px rgba(0,0,0,0.02);
+}
+.cart-item img{width:80px;height:80px;object-fit:cover;border-radius:8px;background:#f4f4f5;border:1px solid var(--border)}
+.item-info{flex:1}
+.item-name{font-weight:700;margin-bottom:4px;font-size:15px;color:#000;line-height:1.3}
+.item-color{font-size:12px;color:#71717a;margin:2px 0 6px 0;font-weight:600}
+.item-price{color:#000;font-weight:800;font-size:15px}
+
+.qty-control{display:flex;align-items:center;gap:10px;margin-top:10px}
+.qty-btn{
+  background:#000;
+  color:#fff;
+  border:none;
+  width:28px;
+  height:28px;
+  border-radius:6px;
+  font-size:16px;
+  font-weight:700;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:all .2s;
+}
+.qty-btn:disabled{background:#e4e4e7;color:#a1a1aa;cursor:not-allowed}
+.qty-num{font-weight:800;min-width:25px;text-align:center;font-size:14px}
+.remove-btn{
+  background:#fee2e2;
+  color:#dc2626;
+  border:1px solid #fca5a5;
+  padding:5px 12px;
+  border-radius:6px;
+  font-size:11px;
+  font-weight:700;
+  cursor:pointer;
+  margin-top:10px;
+  transition:all .2s;
+}
+.remove-btn:hover{background:#dc2626;color:#fff}
+
+.empty{text-align:center;padding:60px 20px;color:#71717a;font-weight:600}
+
+/* Total Box Fixed at Bottom */
+.total-box{
+  background:#fff;
+  padding:16px 20px;
+  border-radius:16px 16px 0 0;
+  position:fixed;
+  bottom:55px;
+  left:0;
+  right:0;
+  box-shadow:0 -4px 20px rgba(0,0,0,0.08);
+  border-top:1px solid var(--border);
+  z-index:90;
+  max-width:600px;
+  margin:0 auto;
+}
+.total-row{display:flex;justify-content:space-between;margin-bottom:8px;font-size:14px;color:#52525b;font-weight:600}
+.total-row.final{font-weight:800;font-size:18px;color:#000;border-top:1.5px dashed var(--border);padding-top:8px;margin-top:4px}
+
+.checkout-btn{
+  background:#000;
+  color:#fff;
+  padding:14px;
+  border:none;
+  border-radius:10px;
+  width:100%;
+  font-size:15px;
+  font-weight:700;
+  cursor:pointer;
+  margin-top:8px;
+  transition:background .2s;
+}
+.checkout-btn:hover{background:#27272a}
+.checkout-btn:disabled{background:#e4e4e7;color:#a1a1aa;cursor:not-allowed}
+
+.back-btn{
+  position:fixed;
+  bottom:180px;
+  left:50%;
+  transform:translateX(-50%);
+  width:calc(100% - 30px);
+  max-width:570px;
+  background:#fff;
+  color:#000;
+  padding:10px;
+  border:1.5px solid #000;
+  border-radius:8px;
+  font-weight:700;
+  text-align:center;
+  text-decoration:none;
+  font-size:13px;
+  z-index:80;
+}
+
+/* Bottom Nav Fix */
+.bottom-nav{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#ffffff;
+  border-top:1px solid #e4e4e7;
+  display:flex;
+  justify-content:space-around;
+  align-items:center;
+  padding:8px 0;
+  z-index:150;
+  box-shadow:0 -4px 20px rgba(0,0,0,.06);
+}
+.nav-item{text-decoration:none;color:#71717a;font-size:11px;font-weight:600;text-align:center;flex:1}
+.nav-item.active{color:#000;font-weight:800}
+
+/* Modal Styling */
+.modal{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  bottom:0;
+  background:rgba(0,0,0,.7);
+  backdrop-filter:blur(3px);
+  z-index:300;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:15px;
+}
+.modal.active{display:flex}
+.order-form{
+  background:#fff;
+  border-radius:16px;
+  padding:22px;
+  width:100%;
+  max-width:420px;
+  max-height:90vh;
+  overflow-y:auto;
+  box-shadow:0 20px 40px rgba(0,0,0,.2);
+}
+.order-form h3{margin-bottom:18px;color:#000;font-size:20px;font-weight:800;border-bottom:2px solid #000;padding-bottom:8px}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;margin-bottom:6px;font-weight:600;font-size:13px;color:#27272a}
+.form-group input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px}
+.form-group input:focus{outline:none;border-color:#000}
+
+.delivery-box{border:1.5px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;background:#fafafa}
+.radio-row{display:flex;align-items:center;margin-bottom:8px;cursor:pointer;font-size:13px;font-weight:600}
+.radio-row input{width:auto;margin-right:10px;accent-color:#000}
+
+.confirm-btn{background:#000;color:#fff;padding:14px;border:none;border-radius:10px;width:100%;font-size:15px;font-weight:700;cursor:pointer;transition:background .2s}
+.confirm-btn:hover{background:#27272a}
+.confirm-btn:disabled{background:#e4e4e7;color:#a1a1aa}
+.close-btn{background:#e4e4e7;color:#27272a;padding:11px;border:none;border-radius:10px;width:100%;font-size:14px;font-weight:600;margin-top:8px;cursor:pointer}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo-container" onclick="location.href='index.html'">
+    <img src="logo.jpg" alt="Logo" onerror="this.style.display='none'">
+    <div class="brand-text">
+      <span class="brand-title">ABSAR UNIQUE TECH</span>
+      <span class="brand-subtitle">| AUT CART</span>
+    </div>
+  </div>
+</div>
+
+<div class="container" id="cartList"></div>
+<a href="index.html" class="back-btn">← Continue Shopping</a>
+
+<div class="total-box" id="totalBox" style="display:none">
+  <div class="total-row">
+    <span>Subtotal:</span>
+    <span id="subtotal">0 TK</span>
+  </div>
+  <div class="total-row final">
+    <span>Total:</span>
+    <span id="total">0 TK</span>
+  </div>
+  <button class="checkout-btn" onclick="openCheckout()">Proceed to Checkout</button>
+</div>
+
+<!-- Bottom Navigation Bar -->
+<div class="bottom-nav">
+  <a href="index.html" class="nav-item">🏠<br>Home</a>
+  <a href="cart.html" class="nav-item active">🛒<br>Cart</a>
+  <a href="my-orders.html" class="nav-item">📦<br>Orders</a>
+  <a href="login.html" class="nav-item">👤<br>Account</a>
+</div>
+
+<div class="modal" id="checkoutModal">
+  <div class="order-form">
+    <h3>অর্ডার কনফার্ম করুন</h3>
+    <div class="form-group">
+      <label>আপনার নাম *</label>
+      <input type="text" id="orderName" placeholder="পুরো নাম লিখুন">
+    </div>
+    <div class="form-group">
+      <label>মোবাইল নাম্বার *</label>
+      <input type="tel" id="orderPhone" placeholder="01XXXXXXXXX">
+    </div>
+    <div class="form-group">
+      <label>সম্পূর্ণ ঠিকানা *</label>
+      <input type="text" id="orderAddress" placeholder="বাসা, রোড, এলাকা, জেলা">
+    </div>
+    <div class="delivery-box">
+      <label style="font-weight:700;margin-bottom:10px;display:block;font-size:13px">ডেলিভারি এরিয়া *</label>
+      <label class="radio-row">
+        <input type="radio" name="delivery" value="80" onchange="updateTotal()">
+        ঢাকার ভিতরে - 80 টাকা
+      </label>
+      <label class="radio-row">
+        <input type="radio" name="delivery" value="150" onchange="updateTotal()">
+        ঢাকার বাইরে - 150 টাকা
+      </label>
+    </div>
+    <div class="delivery-box">
+      <label style="font-weight:700;margin-bottom:10px;display:block;font-size:13px">পেমেন্ট মেথড *</label>
+      <label class="radio-row">
+        <input type="radio" name="payment" value="Cash on Delivery" onchange="showPaymentInfo()">
+        💵 ক্যাশ অন ডেলিভারি
+      </label>
+      <label class="radio-row">
+        <input type="radio" name="payment" value="bKash" onchange="showPaymentInfo()">
+        📱 বিকাশ
+      </label>
+      <label class="radio-row">
+        <input type="radio" name="payment" value="Nagad" onchange="showPaymentInfo()">
+        📱 নগদ
+      </label>
+    </div>
+    <div id="paymentInfo" style="display:none;margin-bottom:15px"></div>
+    <div class="form-group">
+      <label>Transaction ID (bKash/Nagad এর জন্য)</label>
+      <input type="text" id="transactionId" placeholder="TrxID লিখুন">
+    </div>
+    <div class="total-box" style="position:static;box-shadow:none;padding:15px;background:#f4f4f5;border-radius:10px;border:1px solid var(--border);margin-bottom:15px">
+      <div class="total-row">
+        <span>Products:</span>
+        <span id="checkoutSubtotal">0 TK</span>
+      </div>
+      <div class="total-row">
+        <span>Delivery:</span>
+        <span id="checkoutDelivery">0 TK</span>
+      </div>
+      <div class="total-row final">
+        <span>Total:</span>
+        <span id="checkoutTotal">0 TK</span>
+      </div>
+    </div>
+    <button class="confirm-btn" id="confirmBtn" onclick="submitOrder()">অর্ডার কনফার্ম করুন</button>
+    <button class="close-btn" onclick="closeModal()">বাতিল</button>
+  </div>
+</div>
+
+<script>
+// ADMIN CONFIGURATIONS
+const ADMIN_EMAIL = "aut.customercare@gmail.com";
+const TELEGRAM_BOT_TOKEN = "8701573903:AAEkwZ3V-HetLqVnj8lSk8toQ1OCUmY84QM";
+const TELEGRAM_CHAT_ID = "8067475964";
+
+var cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+function renderCart(){
+  var cartList = document.getElementById('cartList');
+  var totalBox = document.getElementById('totalBox');
+
+  if(cart.length === 0){
+    cartList.innerHTML = '<div class="empty">আপনার কার্ট খালি<br><br><a href="index.html" style="color:#000;font-weight:700">প্রোডাক্ট কিনুন</a></div>';
+    totalBox.style.display = 'none';
+    return;
+  }
+
+  var html = '';
+  var subtotal = 0;
+
+  for(var i=0;i<cart.length;i++){
+    var item = cart[i];
+    var itemTotal = parseInt(item.price) * item.qty;
+    subtotal += itemTotal;
+
+    html += '<div class="cart-item"><img src="'+item.img+'" alt="'+item.name+'" onerror="this.src=\'https://via.placeholder.com/80\'"><div class="item-info"><div class="item-name">'+item.name+'</div><div class="item-color">Color: '+(item.color||'N/A')+'</div><div class="item-price">৳'+item.price+' x '+item.qty+' = ৳'+itemTotal+'</div><div class="qty-control"><button class="qty-btn" onclick="updateQty('+i+',-1)" '+(item.qty<=1?'disabled':'')+'>-</button><span class="qty-num">'+item.qty+'</span><button class="qty-btn" onclick="updateQty('+i+',1)">+</button></div><button class="remove-btn" onclick="removeItem('+i+')">Remove</button></div></div>';
+  }
+
+  cartList.innerHTML = html;
+  document.getElementById('subtotal').textContent = subtotal + ' TK';
+  document.getElementById('total').textContent = subtotal + ' TK';
+  totalBox.style.display = 'block';
+}
+
+function updateQty(index, change){
+  cart[index].qty += change;
+  if(cart[index].qty < 1) cart[index].qty = 1;
+  localStorage.setItem('cart', JSON.stringify(cart));
+  renderCart();
+}
+
+function removeItem(index){
+  if(!confirm('এই আইটেম Delete করবেন?')) return;
+  cart.splice(index, 1);
+  localStorage.setItem('cart', JSON.stringify(cart));
+  renderCart();
+}
+
+function openCheckout(){
+  var subtotal = 0;
+  for(var i=0;i<cart.length;i++){
+    subtotal += parseInt(cart[i].price) * cart[i].qty;
+  }
+  document.getElementById('checkoutSubtotal').textContent = subtotal + ' TK';
+  document.getElementById('checkoutTotal').textContent = subtotal + ' TK';
+  document.getElementById('checkoutDelivery').textContent = '0 TK';
+  document.getElementById('checkoutModal').classList.add('active');
+}
+
+function updateTotal(){
+  var subtotal = 0;
+  for(var i=0;i<cart.length;i++){
+    subtotal += parseInt(cart[i].price) * cart[i].qty;
+  }
+  var delivery = document.querySelector('input[name="delivery"]:checked');
+  var charge = delivery? parseInt(delivery.value) : 0;
+  document.getElementById('checkoutDelivery').textContent = charge + ' TK';
+  document.getElementById('checkoutTotal').textContent = (subtotal + charge) + ' TK';
+}
+
+function showPaymentInfo(){
+  var payment = document.querySelector('input[name="payment"]:checked');
+  var infoBox = document.getElementById('paymentInfo');
+
+  if(payment && payment.value!== 'Cash on Delivery'){
+    infoBox.style.display = 'block';
+    infoBox.innerHTML = '<div style="background:#f4f4f5;padding:12px;border-radius:8px;border:1.5px solid #18181b"><div style="font-weight:700;color:#000;margin-bottom:8px">💳 '+payment.value+' নাম্বার:</div><div style="font-size:20px;font-weight:800;color:#000;text-align:center;margin:8px 0">01955379242</div><div style="font-size:12px;color:#52525b;text-align:center">এই নাম্বারে Send Money করুন এবং Transaction ID অর্ডারের সময় দিবেন</div></div>';
+  } else {
+    infoBox.style.display = 'none';
+  }
+}
+
+function closeModal(){
+  document.getElementById('checkoutModal').classList.remove('active');
+  document.getElementById('orderName').value = '';
+  document.getElementById('orderPhone').value = '';
+  document.getElementById('orderAddress').value = '';
+  document.getElementById('transactionId').value = '';
+  var radios = document.querySelector('input[name="delivery"]:checked');
+  if(radios) radios.checked = false;
+  var pRadios = document.querySelector('input[name="payment"]:checked');
+  if(pRadios) pRadios.checked = false;
+  document.getElementById('paymentInfo').style.display = 'none';
+}
+
+function submitOrder(){
+  var name = document.getElementById('orderName').value.trim();
+  var phone = document.getElementById('orderPhone').value.trim();
+  var address = document.getElementById('orderAddress').value.trim();
+  var delivery = document.querySelector('input[name="delivery"]:checked');
+  var payment = document.querySelector('input[name="payment"]:checked');
+  var transactionId = document.getElementById('transactionId').value.trim();
+
+  if(!name) return alert('নাম লিখুন!');
+  if(!phone || phone.length < 11) return alert('সঠিক মোবাইল নাম্বার দিন!');
+  if(!address) return alert('ঠিকানা লিখুন!');
+  if(!delivery) return alert('ডেলিভারি এরিয়া সিলেক্ট করুন!');
+  if(!payment) return alert('পেমেন্ট মেথড সিলেক্ট করুন!');
+
+  if(payment.value!== 'Cash on Delivery' && !transactionId){
+    return alert('bKash/Nagad Transaction ID দিন!');
+  }
+
+  var confirmBtn = document.getElementById('confirmBtn');
+  confirmBtn.disabled = true;
+  confirmBtn.innerText = "প্রসেসিং হচ্ছে...";
+
+  var subtotal = 0;
+  var itemsSummary = '';
+  var itemsEmailFormat = '';
+
+  for(var i=0; i<cart.length; i++){
+    var itemTotal = parseInt(cart[i].price) * cart[i].qty;
+    subtotal += itemTotal;
+    itemsSummary += "▫️ " + cart[i].name + " (" + (cart[i].color || 'N/A') + ") - " + cart[i].qty + " টি = ৳" + itemTotal + "\n";
+    itemsEmailFormat += cart[i].name + " (" + (cart[i].color || 'N/A') + ") x " + cart[i].qty + " [৳" + itemTotal + "]; ";
+  }
+
+  var deliveryCharge = parseInt(delivery.value);
+  var grandTotal = subtotal + deliveryCharge;
+  var orderId = 'ORD-' + Math.floor(100000 + Math.random() * 900000);
+  var orderDate = new Date().toLocaleString('en-BD', {timeZone: 'Asia/Dhaka'});
+
+  var message = "🛍️ *কার্ট থেকে নতুন অর্ডার এসেছে!* (" + orderId + ")\n\n" +
+                "👤 *নাম:* " + name + "\n" +
+                "📞 *ফোন:* " + phone + "\n" +
+                "🏠 *ঠিকানা:* " + address + "\n\n" +
+                "📦 *প্রোডাক্টসমূহ:*\n" + itemsSummary + "\n" +
+                "🚚 *ডেলিভারি চার্জ:* ৳" + deliveryCharge + "\n" +
+                "💰 *সর্বমোট:* ৳" + grandTotal + "\n" +
+                "💳 *পেমেন্ট মেথড:* " + payment.value + "\n" +
+                (transactionId ? "🔢 *TrxID:* " + transactionId + "\n" : "") +
+                "⏰ *সময়:* " + orderDate;
+
+  // LocalStorage-এ অর্ডার সেভ
+  var newOrder = {
+    orderId: orderId,
+    name: name,
+    phone: phone,
+    address: address,
+    items: cart,
+    subtotal: subtotal,
+    deliveryCharge: deliveryCharge,
+    total: grandTotal,
+    payment: payment.value,
+    transactionId: transactionId,
+    date: orderDate,
+    status: 'Pending'
+  };
+
+  var userOrders = JSON.parse(localStorage.getItem('my_orders')) || [];
+  userOrders.unshift(newOrder);
+  localStorage.setItem('my_orders', JSON.stringify(userOrders));
+
+  // FormSubmit.co ইমেইল নোটিফিকেশন ডাটা
+  var formData = new FormData();
+  formData.append("Order_ID", orderId);
+  formData.append("Customer_Name", name);
+  formData.append("Customer_Phone", phone);
+  formData.append("Customer_Address", address);
+  formData.append("Ordered_Items", itemsEmailFormat);
+  formData.append("Subtotal", subtotal + " TK");
+  formData.append("Delivery_Charge", deliveryCharge + " TK");
+  formData.append("Grand_Total", grandTotal + " TK");
+  formData.append("Payment_Method", payment.value);
+  formData.append("Transaction_ID", transactionId || "N/A");
+  formData.append("_captcha", "false");
+  formData.append("_template", "table");
+  formData.append("_subject", "🔔 Cart Order - " + orderId);
+
+  // FormSubmit-এ ইমেইল পাঠানো
+  fetch("https://formsubmit.co/ajax/" + ADMIN_EMAIL, {
+    method: "POST",
+    body: formData
+  });
+
+  // টেলিগ্রামে ব্যাকগ্রাউন্ডে মেসেজ পাঠানো
+  var telegramUrl = "https://api.telegram.org/bot" + TELEGRAM_BOT_TOKEN + "/sendMessage?chat_id=" + TELEGRAM_CHAT_ID + "&text=" + encodeURIComponent(message) + "&parse_mode=Markdown";
+
+  fetch(telegramUrl)
+  .then(function(){
+    alert('✅ অর্ডার সফল!\n\nআমরা শীঘ্রই কল দিব।');
+    localStorage.removeItem('cart');
+    cart = [];
+    closeModal();
+    renderCart();
+  })
+  .catch(function(err){
+    alert('✅ অর্ডার সফলভাবে গ্রহণ করা হয়েছে!');
+    localStorage.removeItem('cart');
+    cart = [];
+    closeModal();
+    renderCart();
+  })
+  .finally(function(){
+    confirmBtn.disabled = false;
+    confirmBtn.innerText = "অর্ডার কনফার্ম করুন";
+  });
+}
+
+renderCart();
+</script>
+</body>
+  </html>
+  
