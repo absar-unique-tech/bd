@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin Panel - ABSAR UNIQUE TECH</title>
+<!-- Firebase Compat JS -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+
+:root{
+  --primary:#000000;
+  --primary-light:#18181b;
+  --accent:#ffffff;
+  --dark:#09090b;
+  --gray:#f4f4f5;
+  --border:#e4e4e7;
+  --text-muted:#71717a;
+  --danger:#ef4444;
+  --success:#22c55e;
+  --warning:#f59e0b;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins', system-ui, -apple-system, sans-serif}
+body{background:var(--gray);color:var(--dark);min-height:100vh}
+
+.hidden{display:none!important}
+
+/* Login Screen Styling */
+.login-screen{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#f4f4f5;
+  padding:20px;
+}
+.login-box{
+  max-width:400px;
+  width:100%;
+  background:#ffffff;
+  padding:36px 28px;
+  border-radius:20px;
+  box-shadow:0 10px 30px rgba(0,0,0,.08);
+  border:1px solid var(--border);
+  text-align:center;
+}
+.login-box h2{color:#000000;margin-bottom:24px;font-weight:800;font-size:22px}
+.login-pwd-wrapper{position:relative;margin-bottom:20px}
+.login-box input{
+  width:100%;
+  padding:14px 16px;
+  border:1.5px solid var(--border);
+  border-radius:10px;
+  font-size:15px;
+  background:#fafafa;
+  outline:none;
+  transition:all .2s;
+  font-weight:500;
+}
+.login-box input:focus{border-color:#000;background:#fff;box-shadow:0 0 0 3px rgba(0,0,0,0.05)}
+.pwd-toggle{
+  position:absolute;
+  right:14px;
+  top:50%;
+  transform:translateY(-50%);
+  cursor:pointer;
+  opacity:0.6;
+  user-select:none;
+}
+.login-box button{
+  width:100%;
+  padding:14px;
+  background:#000000;
+  color:#ffffff;
+  border:none;
+  border-radius:10px;
+  font-size:16px;
+  font-weight:700;
+  cursor:pointer;
+  box-shadow:0 4px 12px rgba(0,0,0,.15);
+  transition:all .2s;
+}
+.login-box button:hover{background:#27272a;transform:translateY(-1px)}
+
+/* Header Styling */
+.admin-header{
+  background:#000000;
+  color:#ffffff;
+  padding:16px 24px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  position:sticky;
+  top:0;
+  z-index:100;
+  box-shadow:0 4px 20px rgba(0,0,0,.12);
+  border-bottom:1px solid #27272a;
+}
+.admin-header h1{font-size:18px;font-weight:800;letter-spacing:0.5px}
+.logout-btn{
+  background:#ef4444;
+  color:#ffffff;
+  padding:8px 18px;
+  border:none;
+  border-radius:8px;
+  font-weight:700;
+  cursor:pointer;
+  font-size:13px;
+  transition:all .2s;
+  box-shadow:0 2px 8px rgba(239,68,68,0.3);
+}
+.logout-btn:hover{background:#dc2626}
+
+/* Main Layout */
+.admin-container{max-width:1280px;margin:24px auto;padding:0 20px}
+
+/* Tabs Styling */
+.tabs{
+  display:flex;
+  gap:10px;
+  margin-bottom:24px;
+  background:#ffffff;
+  padding:8px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  box-shadow:0 2px 8px rgba(0,0,0,.03);
+  overflow-x:auto;
+}
+.tab{
+  padding:12px 20px;
+  background:transparent;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:700;
+  color:#71717a;
+  font-size:14px;
+  white-space:nowrap;
+  transition:all .2s ease;
+}
+.tab:hover{color:#000}
+.tab.active{background:#000000;color:#ffffff;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+
+.tab-content{display:none;animation:fadeIn 0.3s ease}
+.tab-content.active{display:block}
+@keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+/* Cards & Forms */
+.card{
+  background:#ffffff;
+  padding:24px;
+  border-radius:16px;
+  margin-bottom:24px;
+  box-shadow:0 4px 20px rgba(0,0,0,.04);
+  border:1px solid var(--border);
+}
+.card h3{color:#000000;margin-bottom:20px;font-weight:800;font-size:18px;display:flex;align-items:center;justify-content:space-between}
+
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;margin-bottom:8px;font-weight:700;font-size:13px;color:#27272a}
+.form-group input, .form-group select{
+  width:100%;
+  padding:12px 14px;
+  border:1.5px solid var(--border);
+  border-radius:10px;
+  font-size:14px;
+  background:#fafafa;
+  outline:none;
+  transition:all .2s;
+}
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus{
+  border-color:#000;
+  background:#fff;
+  box-shadow:0 0 0 3px rgba(0,0,0,.05);
+}
+.form-group textarea{
+  resize:vertical;
+  min-height:110px;
+  width:100%;
+  white-space:pre;
+  overflow-x:auto;
+  font-family:monospace;
+  font-size:13px;
+  line-height:1.5;
+  padding:12px;
+  border:1.5px solid var(--border);
+  border-radius:10px;
+  background:#fafafa;
+  outline:none;
+}
+
+/* Category Grid */
+.cat-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(130px, 1fr));
+  gap:10px;
+  background:#fafafa;
+  padding:14px;
+  border-radius:10px;
+  max-height:220px;
+  overflow-y:auto;
+  border:1px solid var(--border);
+}
+.cat-grid label{display:flex;align-items:center;gap:8px;font-weight:600;font-size:12px;color:#3f3f46;cursor:pointer;margin:0}
+.cat-grid input[type="checkbox"]{accent-color:#000;width:16px;height:16px}
+
+/* Buttons */
+.btn{
+  background:#000000;
+  color:#ffffff;
+  padding:12px 24px;
+  border:none;
+  border-radius:10px;
+  font-weight:700;
+  cursor:pointer;
+  font-size:14px;
+  transition:all .2s;
+  box-shadow:0 4px 12px rgba(0,0,0,.1);
+}
+.btn:hover{background:#27272a;transform:translateY(-1px)}
+.btn-danger{background:#ef4444!important;color:#fff!important;box-shadow:0 2px 8px rgba(239,68,68,0.2)}
+.btn-danger:hover{background:#dc2626!important}
+.btn-success{background:#22c55e!important;color:#fff!important;box-shadow:0 2px 8px rgba(34,197,94,0.2)}
+.btn-success:hover{background:#16a34a!important}
+
+/* Stat Cards */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{
+  background:#ffffff;
+  color:#000000;
+  padding:20px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  box-shadow:0 4px 12px rgba(0,0,0,.03);
+}
+.stat-card h4{font-size:13px;color:var(--text-muted);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
+.stat-card p{font-size:28px;font-weight:800;color:#000000}
+
+/* Stock Badges */
+.stock-badge{background:#22c55e;color:#fff;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;display:inline-block}
+.stock-badge.low{background:#f59e0b}
+.stock-badge.out{background:#ef4444}
+
+/* Tables */
+.table-responsive{overflow-x:auto;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;background:#fff;font-size:14px}
+th,td{padding:14px 16px;text-align:left;border-bottom:1px solid var(--border)}
+th{background:#fafafa;font-weight:700;color:#27272a;text-transform:uppercase;font-size:12px;letter-spacing:0.5px}
+
+/* Action Buttons in Table & Cards */
+.btn-edit{background:#f4f4f5;color:#000;border:1px solid var(--border);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;transition:all .2s}
+.btn-edit:hover{background:#e4e4e7}
+.btn-del{background:#fef2f2;color:#ef4444;border:1px solid #fecaca;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;transition:all .2s}
+.btn-del:hover{background:#fee2e2}
+.btn-stock{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;transition:all .2s}
+.btn-stock.soldout{background:#fffbebfb;color:#d97706;border-color:#fef3c7}
+
+/* Orders Styling */
+.order-item{
+  background:#ffffff;
+  padding:20px;
+  border-radius:12px;
+  margin-bottom:16px;
+  border:1px solid var(--border);
+  border-left:5px solid #000000;
+  box-shadow:0 2px 8px rgba(0,0,0,.02);
+}
+.order-item h4{color:#000000;margin-bottom:12px;font-weight:800;font-size:15px;display:flex;justify-content:space-between;align-items:center}
+.order-row{display:flex;justify-content:space-between;margin-bottom:8px;font-size:13px;flex-wrap:wrap;gap:12px;color:#3f3f46}
+.order-actions{display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border);flex-wrap:wrap}
+
+/* Slider Styling */
+.product-slider{display:flex;overflow-x:auto;gap:16px;padding:10px 0;scroll-behavior:smooth}
+.product-slide{flex:0 0 280px;background:#ffffff;padding:16px;border-radius:12px;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.03)}
+.product-slide img, .product-slide iframe{width:100%;height:180px;object-fit:cover;border-radius:8px;margin-bottom:12px;border:1px solid var(--border)}
+.product-slide h4{font-size:14px;font-weight:700;color:#000;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slide-actions{display:flex;gap:6px;justify-content:flex-end;margin-top:12px}
+
+/* Modal */
+.modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:300;display:none;align-items:center;justify-content:center;padding:15px}
+.modal.active{display:flex}
+.modal-content{background:#fff;border-radius:18px;padding:28px;width:100%;max-width:650px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 40px rgba(0,0,0,.2)}
+.modal-content h3{margin-bottom:20px;color:#000;font-size:20px;font-weight:800}
+.modal-btns{display:flex;gap:12px;margin-top:24px}
+.modal-btns button{flex:1}
+
+/* Extra Features Elements */
+.search-input{
+  padding:10px 14px;
+  border:1.5px solid var(--border);
+  border-radius:8px;
+  font-size:13px;
+  outline:none;
+  width:220px;
+}
+.search-input:focus{border-color:#000}
+.quick-btn{padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:6px;transition:all .2s}
+.quick-call{background:#e0f2fe;color:#0284c7;border:1px solid #bae6fd}
+.quick-call:hover{background:#bae6fd}
+.quick-wa{background:#dcfce7;color:#15803d;border:1px solid #bbf7d0}
+.quick-wa:hover{background:#bbf7d0}
+.quick-print{background:#f3e8ff;color:#6b21a8;cursor:pointer;border:1px solid #e9d5ff}
+.quick-print:hover{background:#e9d5ff}
+
+/* Banner Grid Styling */
+.banner-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;margin-top:20px}
+.banner-card{background:#fafafa;padding:12px;border-radius:12px;border:1px solid var(--border);position:relative}
+.banner-card img{width:100%;height:140px;object-fit:cover;border-radius:8px;margin-bottom:10px}
+.banner-card-actions{display:flex;justify-content:space-between;align-items:center}
+</style>
+</head>
+<body>
+
+<!-- Login Screen -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-box">
+    <h2>🔐 Admin Panel Login</h2>
+    <div class="login-pwd-wrapper">
+      <input type="password" id="pass" placeholder="Password দিন">
+      <span class="pwd-toggle" onclick="togglePass('pass', this)">👁️</span>
+    </div>
+    <button onclick="login()">Login</button>
+  </div>
+</div>
+
+<!-- Main Admin Panel -->
+<div id="panel" class="hidden">
+  <div class="admin-header">
+    <h1>ABSAR UNIQUE TECH - Admin Panel</h1>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+
+  <div class="admin-container">
+    <!-- Navigation Tabs -->
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('dash',this)">📊 Dashboard</button>
+      <button class="tab" onclick="showTab('add',this)">➕ Add Product</button>
+      <button class="tab" onclick="showTab('products',this)">📦 Products</button>
+      <button class="tab" onclick="showTab('orders',this)">🛒 Orders</button>
+      <button class="tab" onclick="showTab('banners',this)">🖼️ Banners</button>
+    </div>
+
+    <!-- Dashboard Tab -->
+    <div id="dash" class="tab-content active">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h4>Total Products</h4>
+          <p id="statP">0</p>
+        </div>
+        <div class="stat-card">
+          <h4>Total Orders</h4>
+          <p id="statO">0</p>
+        </div>
+        <div class="stat-card">
+          <h4>Today Sales</h4>
+          <p id="todaySales">0 TK</p>
+        </div>
+        <div class="stat-card">
+          <h4>Total Stock</h4>
+          <p id="totalStock">0</p>
+        </div>
+      </div>
+      <div class="card">
+        <h3>📈 নতুন অর্ডার (Live Firebase)</h3>
+        <div id="newOrders"></div>
+      </div>
+    </div>
+
+    <!-- Add Product Tab -->
+    <div id="add" class="tab-content">
+      <div class="card">
+        <h3>➕ নতুন প্রোডাক্ট অ্যাড করুন</h3>
+        <form onsubmit="addProduct(event)">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Product Name *</label>
+              <input type="text" id="pName" placeholder="Anker 20W Charger" required>
+            </div>
+            <div class="form-group">
+              <label>Brand</label>
+              <input type="text" id="pBrand" placeholder="Anker">
+            </div>
+            <div class="form-group">
+              <label>Price (TK) *</label>
+              <input type="number" id="pPrice" placeholder="1450" required>
+            </div>
+            <div class="form-group">
+              <label>Stock কয়টা আছে *</label>
+              <input type="number" id="pStock" placeholder="50" value="0" required>
+            </div>
+            <div class="form-group">
+              <label>Colors - যত ইচ্ছা লিখ, যেকোনো ভাষায়</label>
+              <input type="text" id="pColor" placeholder="Black, কালো, Red, লাল, White, সাদা, Blue, নীল">
+            </div>
+            <div class="form-group">
+              <label>Category * - যতগুলা ইচ্ছা সিলেক্ট কর</label>
+              <div class="cat-grid">
+                <label><input type="checkbox" name="pCategory" value="mobile"> Mobile</label>
+                <label><input type="checkbox" name="pCategory" value="charger"> Charger</label>
+                <label><input type="checkbox" name="pCategory" value="powerbank"> Power Bank</label>
+                <label><input type="checkbox" name="pCategory" value="earbuds"> Earbuds</label>
+                <label><input type="checkbox" name="pCategory" value="neckband"> Neckband</label>
+                <label><input type="checkbox" name="pCategory" value="headphone"> Headphone</label>
+                <label><input type="checkbox" name="pCategory" value="speaker"> Speaker</label>
+                <label><input type="checkbox" name="pCategory" value="soundbox"> Sound Box</label>
+                <label><input type="checkbox" name="pCategory" value="smartwatch"> Smart Watch</label>
+                <label><input type="checkbox" name="pCategory" value="smarttv"> Smart TV</label>
+                <label><input type="checkbox" name="pCategory" value="tvbox"> TV Box</label>
+                <label><input type="checkbox" name="pCategory" value="remote"> Remote</label>
+                <label><input type="checkbox" name="pCategory" value="fan"> Fan</label>
+                <label><input type="checkbox" name="pCategory" value="light"> Light</label>
+                <label><input type="checkbox" name="pCategory" value="gaming"> Gaming</label>
+                <label><input type="checkbox" name="pCategory" value="console"> Console</label>
+                <label><input type="checkbox" name="pCategory" value="cable"> Cable</label>
+                <label><input type="checkbox" name="pCategory" value="adapter"> Adapter</label>
+                <label><input type="checkbox" name="pCategory" value="case"> Case</label>
+                <label><input type="checkbox" name="pCategory" value="holder"> Holder</label>
+                <label><input type="checkbox" name="pCategory" value="accessories"> Accessories</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Image/Video Link - এক লাইনে একটা</label>
+            <textarea id="pImg" rows="10" spellcheck="false" placeholder="https://i.ibb.co/1.jpg"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Features - কমা দিয়ে আলাদা</label>
+            <input type="text" id="pFeat" placeholder="20W Fast, PD, QC3.0">
+          </div>
+          <div class="form-group">
+            <label>Details</label>
+            <textarea id="pDetails" placeholder="প্রোডাক্টের বিস্তারিত লিখুন..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Description Box</label>
+            <textarea id="pDesc" placeholder="ছোট বিবরণ..."></textarea>
+          </div>
+          <button type="submit" class="btn">✅ Add Product</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Products Tab -->
+    <div id="products" class="tab-content">
+      <div class="card">
+        <h3>
+          <span>📦 সব প্রোডাক্ট - Slide করে দেখ</span>
+          <input type="text" class="search-input" id="pSearch" onkeyup="filterProducts()" placeholder="🔍 প্রোডাক্ট খুঁজুন...">
+        </h3>
+        <div class="product-slider" id="productSlider"></div>
+        <div class="table-responsive" style="margin-top:20px">
+          <table id="pTable"></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Orders Tab -->
+    <div id="orders" class="tab-content">
+      <div class="card">
+        <h3>
+          <span>🛒 সব অর্ডার - নতুনগুলো উপরে (Live)</span>
+          <input type="text" class="search-input" id="oSearch" onkeyup="filterOrders()" placeholder="🔍 অর্ডার খুঁজুন (নাম/ফোন)...">
+        </h3>
+        <div id="orderList"></div>
+      </div>
+    </div>
+
+    <!-- Banners Tab -->
+    <div id="banners" class="tab-content">
+      <div class="card">
+        <h3>🖼️ ব্যানার ফটো পরিবর্তন ও ম্যানেজ করুন</h3>
+        <form onsubmit="addBanner(event)">
+          <div class="form-group" style="display:flex; gap:10px; align-items:flex-end;">
+            <div style="flex:1">
+              <label>Banner Image Link (Imgur / Online Link) *</label>
+              <input type="url" id="bannerUrl" placeholder="https://i.imgur.com/example.jpg" required>
+            </div>
+            <button type="submit" class="btn">Add Banner</button>
+          </div>
+        </form>
+        <div class="banner-grid" id="bannerGrid"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Edit Product Modal -->
+<div class="modal" id="editModal">
+  <div class="modal-content">
+    <h3>✏️ Edit Product</h3>
+    <input type="hidden" id="editId">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Product Name *</label>
+        <input type="text" id="editName">
+      </div>
+      <div class="form-group">
+        <label>Brand</label>
+        <input type="text" id="editBrand">
+      </div>
+      <div class="form-group">
+        <label>Price (TK) *</label>
+        <input type="number" id="editPrice">
+      </div>
+      <div class="form-group">
+        <label>Stock কয়টা আছে *</label>
+        <input type="number" id="editStock">
+      </div>
+      <div class="form-group">
+        <label>Colors</label>
+        <input type="text" id="editColor">
+      </div>
+      <div class="form-group">
+        <label>Category *</label>
+        <div class="cat-grid">
+          <label><input type="checkbox" name="editCategory" value="mobile"> Mobile</label>
+          <label><input type="checkbox" name="editCategory" value="charger"> Charger</label>
+          <label><input type="checkbox" name="editCategory" value="powerbank"> Power Bank</label>
+          <label><input type="checkbox" name="editCategory" value="earbuds"> Earbuds</label>
+          <label><input type="checkbox" name="editCategory" value="neckband"> Neckband</label>
+          <label><input type="checkbox" name="editCategory" value="headphone"> Headphone</label>
+          <label><input type="checkbox" name="editCategory" value="speaker"> Speaker</label>
+          <label><input type="checkbox" name="editCategory" value="smartwatch"> Smart Watch</label>
+          <label><input type="checkbox" name="editCategory" value="smarttv"> Smart TV</label>
+          <label><input type="checkbox" name="editCategory" value="tvbox"> TV Box</label>
+          <label><input type="checkbox" name="editCategory" value="gaming"> Gaming</label>
+          <label><input type="checkbox" name="editCategory" value="fan"> Fan</label>
+          <label><input type="checkbox" name="editCategory" value="light"> Light</label>
+          <label><input type="checkbox" name="editCategory" value="accessories"> Accessories</label>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Image/Video Link</label>
+      <textarea id="editImg" rows="8"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Features</label>
+      <input type="text" id="editFeatures">
+    </div>
+    <div class="form-group">
+      <label>Details</label>
+      <textarea id="editDetails"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Description Box</label>
+      <textarea id="editDesc"></textarea>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-success" onclick="updateProduct()">✅ Update Product</button>
+      <button class="btn" style="background:#71717a" onclick="closeEditModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var firebaseConfig = {
+  apiKey: "AIzaSyCI39dQTYcZ76ROxUY73jYB3OZPfjsyegI",
+  authDomain: "absar-unique-tech.firebaseapp.com",
+  databaseURL: "https://absar-unique-tech-default-rtdb.firebaseio.com",
+  projectId: "absar-unique-tech",
+  storageBucket: "absar-unique-tech.firebasestorage.app",
+  messagingSenderId: "576285730220",
+  appId: "1:576285730220:web:1d3cdf9cf3ddc4e00b4609"
+};
+
+firebase.initializeApp(firebaseConfig);
+var database = firebase.database();
+
+var globalProducts = [];
+var globalOrders = [];
+var globalBanners = [];
+
+function togglePass(id, el){
+  var inp = document.getElementById(id);
+  if(inp.type === 'password'){
+    inp.type = 'text';
+    el.textContent = '🙈';
+  } else {
+    inp.type = 'password';
+    el.textContent = '👁️';
+  }
+}
+
+document.getElementById('pass').addEventListener('keypress', function(e){
+  if(e.key === 'Enter') login();
+});
+
+if(localStorage.getItem('adminLogged')==='true'){
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('panel').classList.remove('hidden');
+  initFirebase();
+}
+
+function login(){
+  if(document.getElementById('pass').value==='3316'){
+    localStorage.setItem('adminLogged','true');
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('panel').classList.remove('hidden');
+    initFirebase();
+  } else {
+    alert('Wrong password!');
+  }
+}
+
+function logout(){
+  localStorage.removeItem('adminLogged');
+  location.reload();
+}
+
+function showTab(tab,e){
+  var tabs = document.querySelectorAll('.tab');
+  for(var i=0;i<tabs.length;i++) tabs[i].classList.remove('active');
+  var contents = document.querySelectorAll('.tab-content');
+  for(var i=0;i<contents.length;i++) contents[i].classList.remove('active');
+  e.classList.add('active');
+  document.getElementById(tab).classList.add('active');
+  if(tab==='products') loadProducts();
+  if(tab==='orders') loadOrders();
+  if(tab==='dash') loadStats();
+  if(tab==='banners') loadBanners();
+}
+
+function initFirebase(){
+  loadStats();
+  loadProducts();
+  loadOrders();
+  loadBanners();
+}
+
+function loadStats(){
+  database.ref('products').on('value', function(snapshot) {
+    var products = [];
+    snapshot.forEach(function(child) {
+      var p = child.val();
+      p.id = child.key;
+      products.push(p);
+    });
+    globalProducts = products;
+    document.getElementById('statP').textContent = products.length;
+    var totalStock = 0;
+    for(var i=0;i<products.length;i++){
+      totalStock += parseInt(products[i].stock||0);
+    }
+    document.getElementById('totalStock').textContent = totalStock;
+  });
+
+  database.ref('orders').on('value', function(snapshot) {
+    var orders = [];
+    snapshot.forEach(function(child) {
+      var o = child.val();
+      o.id = child.key;
+      orders.push(o);
+    });
+    globalOrders = orders;
+
+    document.getElementById('statO').textContent = orders.length;
+
+    var today = new Date().toDateString();
+    var todaySales = 0;
+    for(var i=0;i<orders.length;i++){
+      var o = orders[i];
+      var orderDate = o.orderTime? new Date(o.orderTime) : new Date();
+      if(orderDate.toDateString()===today){
+        todaySales += parseInt(o.totalAmount||0);
+      }
+    }
+    document.getElementById('todaySales').textContent = todaySales+' TK';
+
+    var html = '';
+    var recentOrders = orders.slice(-5).reverse();
+    for(var i=0;i<recentOrders.length;i++){
+      var o = recentOrders[i];
+      html += '<div class="order-item"><h4>'+(o.customerName||'N/A')+' - '+(o.productName||'N/A')+'</h4><div class="order-row"><span>📱 '+(o.phone||'N/A')+'</span><span>৳'+(o.totalAmount||0)+'</span><span>Status: '+(o.orderStatus||'Pending')+'</span></div></div>';
+    }
+    document.getElementById('newOrders').innerHTML = html || '<p>কোনো নতুন অর্ডার নাই</p>';
+  });
+}
+
+function addProduct(e){
+  e.preventDefault();
+  var categories = [];
+  var cbs = document.querySelectorAll('input[name="pCategory"]:checked');
+  for(var i=0;i<cbs.length;i++) categories.push(cbs[i].value);
+
+  var product = {
+    name: document.getElementById('pName').value,
+    brand: document.getElementById('pBrand').value,
+    price: document.getElementById('pPrice').value,
+    stock: document.getElementById('pStock').value,
+    color: document.getElementById('pColor').value,
+    category: categories.join(','),
+    images: document.getElementById('pImg').value,
+    features: document.getElementById('pFeat').value,
+    details: document.getElementById('pDetails').value,
+    description: document.getElementById('pDesc').value,
+    date: new Date().toISOString()
+  };
+
+  database.ref('products').push(product).then(function(){
+    alert('✅ Product Add হইছে!');
+    e.target.reset();
+  }).catch(function(err){
+    alert('❌ Error: '+err.message);
+  });
+}
+
+function loadProducts(){
+  database.ref('products').on('value', function(snapshot) {
+    var products = [];
+    snapshot.forEach(function(child) {
+      var p = child.val();
+      p.id = child.key;
+      products.push(p);
+    });
+    globalProducts = products;
+    renderProductsList(products);
+  });
+}
+
+function renderProductsList(products){
+  var sliderHtml = '';
+  for(var i=0;i<products.length;i++){
+    var p = products[i];
+    var stock = parseInt(p.stock||0);
+    var isSoldOut = stock<=0;
+    var imgList = (p.images||'').split('\n').filter(function(i){return i.trim()});
+    var firstImg = imgList[0]||'';
+
+    sliderHtml += '<div class="product-slide"><img src="'+firstImg+'" onerror="this.src=\'https://via.placeholder.com/150\'"><h4>'+p.name+'</h4><p style="font-weight:700">৳'+p.price+'</p><p style="font-size:12px;color:#71717a">Stock: '+stock+'</p><div class="slide-actions"><button class="btn-stock '+(isSoldOut?'soldout':'')+'" onclick="toggleStock(\''+p.id+'\',\''+p.stock+'\')">'+(isSoldOut?'Sold In':'Sold Out')+'</button><button class="btn-edit" onclick="openEditModal(\''+p.id+'\')">Edit</button><button class="btn-del" onclick="deleteProduct(\''+p.id+'\')">Delete</button></div></div>';
+  }
+  document.getElementById('productSlider').innerHTML = sliderHtml || '<p>কোনো প্রোডাক্ট নাই</p>';
+
+  var html = '<thead><tr><th>Name</th><th>Price</th><th>Stock</th><th>Category</th><th>Actions</th></tr></thead><tbody>';
+  for(var i=0;i<products.length;i++){
+    var p = products[i];
+    var stock = parseInt(p.stock||0);
+    var stockBadge = stock>10?'<span class="stock-badge">In Stock: '+stock+'</span>':stock>0?'<span class="stock-badge low">Low: '+stock+'</span>':'<span class="stock-badge out">Sold Out</span>';
+    var isSoldOut = stock<=0;
+    html += '<tr><td><strong>'+p.name+'</strong></td><td>৳'+p.price+'</td><td>'+stockBadge+'</td><td>'+(p.category||'-')+'</td><td><button class="btn-edit" onclick="openEditModal(\''+p.id+'\')">Edit</button> <button class="btn-stock '+(isSoldOut?'soldout':'')+'" onclick="toggleStock(\''+p.id+'\',\''+p.stock+'\')">'+(isSoldOut?'Sold In':'Sold Out')+'</button> <button class="btn-del" onclick="deleteProduct(\''+p.id+'\')">Delete</button></td></tr>';
+  }
+  html += '</tbody>';
+  document.getElementById('pTable').innerHTML = html || '<tr><td colspan="5" style="text-align:center;padding:20px">কোনো প্রোডাক্ট নাই</td></tr>';
+}
+
+function filterProducts(){
+  var q = document.getElementById('pSearch').value.toLowerCase();
+  var filtered = globalProducts.filter(function(p){
+    return (p.name && p.name.toLowerCase().includes(q)) || (p.brand && p.brand.toLowerCase().includes(q));
+  });
+  renderProductsList(filtered);
+}
+
+function openEditModal(id){
+  database.ref('products/' + id).once('value', function(snapshot) {
+    var p = snapshot.val();
+    if(!p) return;
+
+    document.getElementById('editId').value = id;
+    document.getElementById('editName').value = p.name || '';
+    document.getElementById('editBrand').value = p.brand||'';
+    document.getElementById('editPrice').value = p.price || 0;
+    document.getElementById('editStock').value = p.stock || 0;
+    document.getElementById('editColor').value = p.color||'';
+    document.getElementById('editImg').value = p.images||'';
+    document.getElementById('editFeatures').value = p.features||'';
+    document.getElementById('editDetails').value = p.details||'';
+    document.getElementById('editDesc').value = p.description||'';
+
+    document.getElementById('editModal').classList.add('active');
+  });
+}
+
+function closeEditModal(){
+  document.getElementById('editModal').classList.remove('active');
+}
+
+function updateProduct(){
+  var id = document.getElementById('editId').value;
+  var product = {
+    name: document.getElementById('editName').value,
+    brand: document.getElementById('editBrand').value,
+    price: document.getElementById('editPrice').value,
+    stock: document.getElementById('editStock').value,
+    color: document.getElementById('editColor').value,
+    images: document.getElementById('editImg').value,
+    features: document.getElementById('editFeatures').value,
+    details: document.getElementById('editDetails').value,
+    description: document.getElementById('editDesc').value
+  };
+
+  database.ref('products/' + id).update(product).then(function(){
+    alert('✅ Product Update হইছে!');
+    closeEditModal();
+  });
+}
+
+function toggleStock(id,currentStock){
+  var newStock = parseInt(currentStock)>0?0:10;
+  database.ref('products/' + id).update({stock: newStock});
+}
+
+function deleteProduct(id){
+  if(!confirm('এই প্রোডাক্ট Delete করবেন?')) return;
+  database.ref('products/' + id).remove();
+}
+
+function loadOrders(){
+  database.ref('orders').on('value', function(snapshot) {
+    var orders = [];
+    snapshot.forEach(function(child) {
+      var o = child.val();
+      o.id = child.key;
+      orders.push(o);
+    });
+    orders.reverse();
+    globalOrders = orders;
+    renderOrdersList(orders);
+  });
+}
+
+function renderOrdersList(orders){
+  var html = '';
+  for(var i=0;i<orders.length;i++){
+    var o = orders[i];
+    var paymentInfo = o.paymentMethod==='Cash on Delivery'?'COD':(o.paymentMethod||'COD')+' - '+(o.transactionId||'N/A');
+    var rawPhone = o.phone ? o.phone.replace(/[^0-9]/g, '') : '';
+    
+    // WhatsApp URL Format Fix
+    var waPhone = rawPhone.startsWith('88') ? rawPhone : '88' + rawPhone;
+
+    html += '<div class="order-item">'+
+      '<h4><span>Order #'+o.id+' - '+(o.orderTime||'N/A')+'</span><span class="stock-badge">'+(o.orderStatus||'Pending')+'</span></h4>'+
+      '<div class="order-row"><span><strong>Customer:</strong> '+(o.customerName||'N/A')+'</span><span><strong>Phone:</strong> '+(o.phone||'N/A')+'</span><span><strong>Product:</strong> '+(o.productName||'N/A')+'</span></div>'+
+      '<div class="order-row"><span><strong>Qty:</strong> '+(o.quantity||1)+'</span><span><strong>Total:</strong> ৳'+(o.totalAmount||0)+'</span><span><strong>Delivery:</strong> '+(o.deliveryArea||'N/A')+' (৳'+(o.deliveryCharge||0)+')</span></div>'+
+      '<div class="order-row"><span><strong>Address:</strong> '+(o.address||'N/A')+'</span><span><strong>Payment:</strong> '+paymentInfo+'</span></div>'+
+      '<div class="order-actions">'+
+        '<a href="tel:'+rawPhone+'" class="quick-btn quick-call">📞 Direct Call</a>'+
+        '<a href="https://wa.me/'+waPhone+'" target="_blank" class="quick-btn quick-wa">💬 WhatsApp Chat</a>'+
+        '<button class="quick-btn quick-print" onclick="printInvoice(\''+o.id+'\')">🖨️ Invoice / Print</button>'+
+        '<div style="flex:1"></div>'+
+        '<select onchange="updateOrderStatus(\''+o.id+'\',this.value)" style="padding:6px 10px;border-radius:6px;border:1px solid #e4e4e7;font-weight:600;font-size:12px">'+
+          '<option value="Pending" '+(o.orderStatus==='Pending'?'selected':'')+'>Pending</option>'+
+          '<option value="Confirmed" '+(o.orderStatus==='Confirmed'?'selected':'')+'>Confirmed</option>'+
+          '<option value="Delivered" '+(o.orderStatus==='Delivered'?'selected':'')+'>Delivered</option>'+
+          '<option value="Cancelled" '+(o.orderStatus==='Cancelled'?'selected':'')+'>Cancelled</option>'+
+        '</select>'+
+        '<button class="btn-del" onclick="deleteOrder(\''+o.id+'\')">Delete</button>'+
+      '</div>'+
+    '</div>';
+  }
+  document.getElementById('orderList').innerHTML = html || '<p style="text-align:center;padding:20px">কোনো অর্ডার নাই</p>';
+}
+
+function filterOrders(){
+  var q = document.getElementById('oSearch').value.toLowerCase();
+  var filtered = globalOrders.filter(function(o){
+    return (o.customerName && o.customerName.toLowerCase().includes(q)) || 
+           (o.phone && o.phone.toLowerCase().includes(q)) || 
+           (o.productName && o.productName.toLowerCase().includes(q));
+  });
+  renderOrdersList(filtered);
+}
+
+function updateOrderStatus(id,status){
+  database.ref('orders/' + id).update({orderStatus: status});
+}
+
+function deleteOrder(id){
+  if(!confirm('এই অর্ডার Delete করবেন?')) return;
+  database.ref('orders/' + id).remove();
+}
+
+// Full Custom Invoice Printing Generator Page
+function printInvoice(orderId){
+  var o = globalOrders.find(function(item){return item.id === orderId});
+  if(!o) return alert("অর্ডারের তথ্য পাওয়া যায়নি!");
+
+  var totalVal = parseInt(o.totalAmount||0);
+  var deliveryChargeVal = parseInt(o.deliveryCharge||0);
+  var productPriceVal = totalVal - deliveryChargeVal;
+
+  var win = window.open('', '_blank', 'width=800,height=900');
+  win.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Invoice - ${o.id}</title>
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap');
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins', sans-serif;}
+        body{padding:40px;background:#fff;color:#111;}
+        .invoice-card{border:2px solid #000;padding:30px;border-radius:12px;max-width:750px;margin:auto;}
+        .inv-header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #000;padding-bottom:15px;margin-bottom:20px;}
+        .inv-brand{display:flex;align-items:center;gap:12px;}
+        .inv-brand img{width:60px;height:60px;border-radius:8px;object-fit:cover;border:1px solid #000;}
+        .inv-brand-text h2{font-size:20px;font-weight:800;letter-spacing:1px;text-transform:uppercase;}
+        .inv-brand-text p{font-size:12px;color:#555;}
+        .inv-title{text-align:right;}
+        .inv-title h3{font-size:22px;font-weight:800;color:#000;}
+        .inv-title p{font-size:12px;color:#444;}
+        
+        .inv-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:25px;background:#f9f9f9;padding:15px;border-radius:8px;border:1px solid #eee;}
+        .info-box h4{font-size:13px;text-transform:uppercase;color:#666;margin-bottom:6px;}
+        .info-box p{font-size:13px;font-weight:600;margin-bottom:3px;}
+        
+        .inv-table{width:100%;border-collapse:collapse;margin-bottom:20px;}
+        .inv-table th, .inv-table td{border:1px solid #000;padding:12px;text-align:left;font-size:13px;}
+        .inv-table th{background:#000;color:#fff;font-weight:700;}
+        
+        .inv-total-section{display:flex;justify-content:flex-end;margin-bottom:30px;}
+        .inv-total-table{width:260px;border-collapse:collapse;}
+        .inv-total-table td{padding:6px 10px;font-size:13px;}
+        .inv-total-table td:last-child{text-align:right;font-weight:700;}
+        .inv-total-table tr.grand-total{border-top:2px solid #000;border-bottom:2px solid #000;font-size:16px;font-weight:800;}
+        
+        .inv-footer{border-top:1px dashed #ccc;padding-top:15px;text-align:center;font-size:12px;color:#555;}
+        .inv-footer strong{color:#000;}
+        
+        @media print {
+          body{padding:0;}
+          .invoice-card{border:none;padding:10px;}
+        }
+      </style>
+    </head>
+    <body>
+      <div class="invoice-card">
+        <div class="inv-header">
+          <div class="inv-brand">
+            <img src="logo.jpg" alt="Logo" onerror="this.style.display='none'">
+            <div class="inv-brand-text">
+              <h2>ABSAR UNIQUE TECH</h2>
+              <p>Authentic Gadgets & Electronics</p>
+            </div>
+          </div>
+          <div class="inv-title">
+            <h3>INVOICE</h3>
+            <p>ID: <strong>${o.id}</strong></p>
+            <p>Date: ${o.orderTime || new Date().toLocaleDateString('bn-BD')}</p>
+          </div>
+        </div>
+
+        <div class="inv-info-grid">
+          <div class="info-box">
+            <h4>Customer Details:</h4>
+            <p>👤 Name: ${o.customerName || 'N/A'}</p>
+            <p>📞 Phone: ${o.phone || 'N/A'}</p>
+            <p>📍 Address: ${o.address || 'N/A'}</p>
+          </div>
+          <div class="info-box">
+            <h4>Order & Payment Summary:</h4>
+            <p>🚚 Area: ${o.deliveryArea || 'N/A'}</p>
+            <p>💳 Payment Method: ${o.paymentMethod || 'COD'}</p>
+            <p>🔢 Trx ID: ${o.transactionId || 'N/A'}</p>
+          </div>
+        </div>
+
+        <table class="inv-table">
+          <thead>
+            <tr>
+              <th>Product Name</th>
+              <th style="width:70px;text-align:center;">Qty</th>
+              <th style="width:120px;text-align:right;">Price</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>${o.productName || 'N/A'}</strong></td>
+              <td style="text-align:center;">${o.quantity || 1}</td>
+              <td style="text-align:right;">৳${productPriceVal > 0 ? productPriceVal : totalVal}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="inv-total-section">
+          <table class="inv-total-table">
+            <tr>
+              <td>Subtotal:</td>
+              <td>৳${productPriceVal > 0 ? productPriceVal : totalVal}</td>
+            </tr>
+            <tr>
+              <td>Delivery Charge:</td>
+              <td>৳${deliveryChargeVal}</td>
+            </tr>
+            <tr class="grand-total">
+              <td>Total Payable:</td>
+              <td>৳${totalVal}</td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="inv-footer">
+          <p><strong>ABSAR UNIQUE TECH</strong> | Customer Care Support</p>
+          <p>📧 Email: aut.customercare@gmail.com | 📞 Phone: 01814190807</p>
+          <p style="margin-top:8px;font-style:italic;">Thank you for shopping with us!</p>
+        </div>
+      </div>
+
+      <script>
+        window.onload = function() {
+          window.print();
+        }
+      <\/script>
+    </body>
+    </html>
+  `);
+  win.document.close();
+}
+
+function addBanner(e){
+  e.preventDefault();
+  var url = document.getElementById('bannerUrl').value;
+  database.ref('banners').push({
+    url: url,
+    date: new Date().toISOString()
+  }).then(function(){
+    alert('✅ Banner Add হইছে!');
+    document.getElementById('bannerUrl').value = '';
+  });
+}
+
+function loadBanners(){
+  database.ref('banners').on('value', function(snapshot) {
+    var banners = [];
+    snapshot.forEach(function(child) {
+      var b = child.val();
+      b.id = child.key;
+      banners.push(b);
+    });
+    globalBanners = banners;
+    renderBannersList(banners);
+  });
+}
+
+function renderBannersList(banners){
+  var html = '';
+  for(var i=0; i<banners.length; i++){
+    var b = banners[i];
+    html += '<div class="banner-card">'+
+              '<img src="'+b.url+'" alt="Banner '+(i+1)+'">'+
+              '<div class="banner-card-actions">'+
+                '<span style="font-size:12px;font-weight:700">Banner #'+(i+1)+'</span>'+
+                '<button class="btn-del" onclick="deleteBanner(\''+b.id+'\')">Delete</button>'+
+              '</div>'+
+            '</div>';
+  }
+  document.getElementById('bannerGrid').innerHTML = html || '<p style="grid-column:1/-1;text-align:center;padding:20px;color:#71717a">কোনো ব্যানার যুক্ত করা নেই</p>';
+}
+
+function deleteBanner(id){
+  if(!confirm('এই ব্যানারটি Delete করবেন?')) return;
+  database.ref('banners/' + id).remove();
+}
+</script>
+</body>
+</html>
